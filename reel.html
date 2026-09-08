@@ -170,6 +170,26 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 @keyframes spin{to{transform:rotate(360deg)}}
 .toast{position:fixed;left:50%;bottom:56px;z-index:450;transform:translate(-50%,14px);padding:9px 12px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(8,8,8,.9);color:rgba(255,255,255,.65);font-size:9px;opacity:0;pointer-events:none;transition:.28s cubic-bezier(.22,1,.36,1)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+/* surprise me */
+.surprise-overlay{position:fixed;inset:0;z-index:950;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.42);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s ease}
+.surprise-overlay.open{opacity:1;visibility:visible;pointer-events:auto}
+.surprise-card{position:relative;width:min(320px,calc(100vw - 40px));overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:22px;background:#050505;box-shadow:0 36px 100px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,255,255,.025);transform:translateY(12px) scale(.96) rotateX(3deg);opacity:0;transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .34s ease;will-change:transform,opacity}
+.surprise-overlay.open .surprise-card{transform:translateY(0) scale(1) rotateX(0deg);opacity:1}
+.surprise-card-media{position:relative;aspect-ratio:2/3;overflow:hidden;background:#0a0a0a}
+.surprise-card-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(15px) brightness(.46) saturate(.72);transform:scale(1.05);opacity:.18;transition:filter .75s cubic-bezier(.22,1,.36,1),opacity .75s ease,transform 1s cubic-bezier(.22,1,.36,1)}
+.surprise-card.reveal .surprise-card-media img{filter:blur(0) brightness(.78) saturate(.82);opacity:1;transform:scale(1.01)}
+.surprise-card-media::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.06) 20%,rgba(0,0,0,.08) 46%,rgba(0,0,0,.84) 100%)}
+.surprise-card-scan{position:absolute;left:0;right:0;top:-12%;height:18%;background:linear-gradient(180deg,transparent,rgba(255,255,255,.09),transparent);opacity:0;transform:translateY(0);pointer-events:none}
+.surprise-card.reveal .surprise-card-scan{animation:surprise-scan .9s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes surprise-scan{0%{opacity:0;transform:translateY(-40%)}18%{opacity:.65}100%{opacity:0;transform:translateY(620%)}}
+.surprise-card-content{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:20px 20px 19px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.42) 10%,rgba(0,0,0,.9) 100%);transform:translateY(7px);opacity:.7;transition:transform .55s cubic-bezier(.22,1,.36,1) .1s,opacity .45s ease .1s}
+.surprise-card.reveal .surprise-card-content{transform:none;opacity:1}
+.surprise-kicker{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:8px;color:rgba(255,255,255,.42);letter-spacing:.04em}
+.surprise-kicker i{width:5px;height:5px;border-radius:50%;background:#75ff98;box-shadow:0 0 10px rgba(117,255,152,.62)}
+.surprise-title{margin:0;font-size:clamp(24px,6vw,32px);line-height:.98;letter-spacing:-.055em;font-weight:700;color:#fff;text-wrap:balance}
+.surprise-meta{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:9px;color:rgba(255,255,255,.5)}
+.surprise-overlay.loading .surprise-card-content{opacity:.35}
+@media(max-width:620px){.surprise-overlay{padding:16px}.surprise-card{width:min(286px,calc(100vw - 32px));border-radius:19px}.surprise-card-content{padding:17px 17px 16px}}
 .player-overlay{position:fixed;inset:0;z-index:1000;background:#000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;visibility:hidden;transition:opacity .24s ease,visibility .24s ease}
 .player-overlay.open{opacity:1;pointer-events:auto;visibility:visible}
 .player-frame{position:relative;width:100%;height:100%;background:#000;overflow:hidden}
@@ -236,7 +256,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 </div>
 </div>
 
-<button class="nav-btn icon-button" id="randomButton" title="Random title" aria-label="Random title"><i data-lucide="dices"></i></button>
+<button class="nav-btn icon-button" id="randomButton" title="Surprise me" aria-label="Surprise me"><i data-lucide="dices"></i></button>
 
 <div class="settings-wrap">
 <button class="nav-btn icon-button" id="settingsButton" title="Settings" aria-label="Settings" aria-expanded="false"><i data-lucide="settings"></i></button>
@@ -304,6 +324,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 </div>
 </section>
 <div class="search-panel" id="searchPanel"><div class="search-box"><span class="search-icon">⌕</span><input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="search titles or use /tags..."><button class="search-close icon-button" id="searchClose" title="Close search" aria-label="Close search"><i data-lucide="x"></i></button></div><div class="search-tags" id="searchTags"><button class="search-tag" type="button" data-tag="/tv">/tv</button><button class="search-tag" type="button" data-tag="/movie">/movie</button><button class="search-tag" type="button" data-tag="/horror">/horror</button><button class="search-tag" type="button" data-tag="/action">/action</button><button class="search-tag" type="button" data-tag="/trending">/trending</button><button class="search-tag" type="button" data-tag="/top">/top</button><button class="search-tag" type="button" data-tag="/2020s">/2020s</button></div></div>
+<div class="surprise-overlay" id="surpriseOverlay" aria-hidden="true"><div class="surprise-card" id="surpriseCard" role="dialog" aria-modal="true" aria-label="Surprise title"><div class="surprise-card-media"><img id="surprisePoster" src="" alt=""><div class="surprise-card-scan"></div></div><div class="surprise-card-content"><div class="surprise-kicker"><i></i><span id="surpriseKicker">finding something...</span></div><h2 class="surprise-title" id="surpriseTitle">surprise me</h2><div class="surprise-meta" id="surpriseMeta"></div></div></div></div>
 <div class="loading" id="loading"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 <div class="bottom"><div class="hint">drag to explore · scroll to move · / to search</div><div class="status"><span class="status-dot"></span><span id="statusText">loading cinema</span></div></div>
@@ -331,7 +352,7 @@ const center=document.getElementById("center");
 const modeLabel=document.getElementById("modeLabel");
 const loading=document.getElementById("loading");
 const statusText=document.getElementById("statusText");
-const toast=document.getElementById("toast");
+const toast=document.getElementById("toast");const surpriseOverlay=document.getElementById("surpriseOverlay");const surpriseCard=document.getElementById("surpriseCard");const surprisePoster=document.getElementById("surprisePoster");const surpriseTitle=document.getElementById("surpriseTitle");const surpriseMeta=document.getElementById("surpriseMeta");const surpriseKicker=document.getElementById("surpriseKicker");
 const searchPanel=document.getElementById("searchPanel");
 const searchInput=document.getElementById("searchInput");
 const searchTags=document.getElementById("searchTags");
@@ -452,6 +473,7 @@ playerClose.addEventListener("click",closePlayer);
 playerFullscreen.addEventListener("click",async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await playerFrame.requestFullscreen()}catch{showToast("fullscreen is unavailable")}});
 playerIframe.addEventListener("load",()=>{playerLoading.style.display="none"});
 window.addEventListener("message",event=>{if(event.origin!=="https://cinesrc.st")return;const data=event.data||{};if(data.type==="cinesrc:close")closePlayer();if(data.type==="cinesrc:error"){playerLoading.style.display="none";showToast("player reported a streaming error")}});
+let surpriseTimer=null;function closeSurprise(){clearTimeout(surpriseTimer);surpriseOverlay.classList.remove("open","loading");surpriseOverlay.setAttribute("aria-hidden","true");surpriseCard.classList.remove("reveal");surpriseKicker.textContent="finding something...";surpriseMeta.textContent=""}function runSurprise(){if(!state.movies.length){showToast("titles are still loading");return}const candidates=state.movies.length>1&&state.currentMovie?state.movies.filter(movie=>movie.id!==state.currentMovie.id):state.movies.slice();if(!candidates.length){showToast("not enough titles loaded yet");return}const movie=candidates[Math.floor(Math.random()*candidates.length)];const isTV=state.mediaType==="tv"||movie.media_type==="tv"||(movie.name&&!movie.title);surprisePoster.src=imageUrl(movie.poster_path||movie.backdrop_path,"w500");surprisePoster.alt=contentTitle(movie);surpriseTitle.textContent="surprise me";surpriseMeta.textContent="";surpriseKicker.textContent="finding something...";surpriseOverlay.classList.add("open","loading");surpriseOverlay.setAttribute("aria-hidden","false");surpriseCard.classList.remove("reveal");clearTimeout(surpriseTimer);requestAnimationFrame(()=>{requestAnimationFrame(()=>{surpriseCard.classList.add("reveal");surpriseKicker.textContent="your pick";surpriseTitle.textContent=contentTitle(movie);surpriseMeta.textContent=[contentDate(movie)?.slice(0,4),isTV?"tv":"movie",movie.vote_average?`★ ${Number(movie.vote_average).toFixed(1)}`:""].filter(Boolean).join(" · ");surpriseOverlay.classList.remove("loading")})});surpriseTimer=setTimeout(()=>{closeSurprise();openMovie(movie)},1250)}
 function closeMovie(){detailsOverlay.classList.remove("open");state.lastSelectedId=null}
 document.getElementById("modalClose").addEventListener("click",closeMovie);
 detailsOverlay.addEventListener("click",event=>{if(event.target===detailsOverlay)closeMovie()});
@@ -490,9 +512,9 @@ filterReset.addEventListener("click",()=>{mediaType.value="movie";sortType.value
 document.getElementById("popularButton").addEventListener("click",()=>{state.sort="popular";sortType.value="popular";resetAndLoad("popular","")});
 document.getElementById("trendingButton").addEventListener("click",()=>{state.sort="trending";sortType.value="trending";resetAndLoad("trending","")});
 document.getElementById("exploreButton").addEventListener("click",()=>{center.classList.add("dim");state.vx=1.85;state.vy=-1.05;state.travel+=700;state.dirty=true;startRenderer();if(state.sort!=="trending"&&state.nextPage<=state.totalPages)maybeLoadMore();setTimeout(()=>center.classList.remove("dim"),1000)});
-document.getElementById("randomButton").addEventListener("click",()=>{if(!state.movies.length){showToast("titles are still loading");return}openMovie(state.movies[Math.floor(Math.random()*state.movies.length)])});
-document.addEventListener("click",event=>{if(!filtersPanel.contains(event.target)&&event.target!==filterButton)closeFilters();if(!settingsPanel.contains(event.target)&&event.target!==settingsButton)closeSettings()});
-document.addEventListener("keydown",event=>{if(event.key==="Escape"){if(playerOverlay.classList.contains("open")){closePlayer();return}closeMovie();closeSearch();closeFilters();closeSettings()}if(event.key==="/"&&document.activeElement!==searchInput&&!playerOverlay.classList.contains("open")){event.preventDefault();openSearch()}if(playerOverlay.classList.contains("open")||detailsOverlay.classList.contains("open"))return;if(event.key==="ArrowLeft"){state.vx+=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowRight"){state.vx-=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowUp"){state.vy+=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowDown"){state.vy-=1.1;state.dirty=true;startRenderer()}});
+document.getElementById("randomButton").addEventListener("click",runSurprise);
+document.addEventListener("click",event=>{if(!filtersPanel.contains(event.target)&&event.target!==filterButton)closeFilters();if(!settingsPanel.contains(event.target)&&event.target!==settingsButton)closeSettings()});surpriseOverlay.addEventListener("click",event=>{if(event.target===surpriseOverlay)closeSurprise()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"){if(surpriseOverlay.classList.contains("open")){closeSurprise();return}if(playerOverlay.classList.contains("open")){closePlayer();return}closeMovie();closeSearch();closeFilters();closeSettings()}if(event.key==="/"&&document.activeElement!==searchInput&&!playerOverlay.classList.contains("open")){event.preventDefault();openSearch()}if(playerOverlay.classList.contains("open")||detailsOverlay.classList.contains("open"))return;if(event.key==="ArrowLeft"){state.vx+=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowRight"){state.vx-=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowUp"){state.vy+=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowDown"){state.vy-=1.1;state.dirty=true;startRenderer()}});
 let resizeTimer;window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{resizeCanvas();state.dirty=true;startRenderer()},100)});
 async function boot(){loadSettings();lowPowerDevice=detectLowPowerDevice();applyQualityMode(QUALITY_MODE,false);updateEffectUI();updateSearchTags();if(window.lucide)lucide.createIcons();loadCache();mediaType.value=state.mediaType;sortType.value=state.sort;minRating.value=String(state.minRating);await loadGenres(state.mediaType);if(state.movies.length){updateStatus();primeImages(18);state.dirty=true;startRenderer()}try{setLoading(true);state.movies=[];state.movieIds.clear();state.pagesLoaded.clear();state.nextPage=1;state.totalPages=1;state.worldAssignments.clear();state.dirty=true;await fetchPage(1,true);if(state.sort!=="trending"&&state.totalPages>1)fetchPage(2,true)}catch(error){console.error(error);if(state.movies.length){updateStatus();showToast("using cached titles · "+(error.message||"TMDB unavailable"))}else{statusText.textContent="tmdb error";showToast(error.message||"Could not connect to TMDB")}}finally{setLoading(false)}setupPerformanceMonitor()}
 if(window.lucide)lucide.createIcons();
