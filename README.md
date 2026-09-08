@@ -1,4 +1,6 @@
 # Reel
+<img width="1366" height="655" alt="image" src="https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f" />
+<img width="1366" height="649" alt="image" src="https://github.com/user-attachments/assets/11e1b532-87e9-4ce1-9725-86d529fdf58b" />
 
 A minimal, canvas-driven movie and TV discovery interface powered by TMDB.
 
