@@ -164,9 +164,3 @@ Reel is not affiliated with or endorsed by TMDB.
 ## Playback
 
 Reel uses an external embed service for playback. Movie IDs and TV IDs are passed to the configured player, with the selected TV season and episode included for television content.
-
-## License
-
-No license has been added to this repository yet.
-
-Choose a license before distributing the project publicly if you want to define reuse and redistribution terms.
