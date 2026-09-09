@@ -1,6 +1,14 @@
 # Reel
-<img width="1366" height="655" alt="image" src="https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f" />
-<img width="1366" height="649" alt="image" src="https://github.com/user-attachments/assets/11e1b532-87e9-4ce1-9725-86d529fdf58b" />
+
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Last commit">
+  <img src="https://img.shields.io/github/issues-raw/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Open issues">
+  <img src="https://img.shields.io/github/issues-pr-raw/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Pull requests">
+</p>
+
+<img width="1366" height="655" alt="Reel interface" src="https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f" />
+
+<img width="1366" height="649" alt="Reel interface" src="https://github.com/user-attachments/assets/11e1b532-87e9-4ce1-9725-86d529fdf58b" />
 
 A minimal, canvas-driven movie and TV discovery interface powered by TMDB.
 
@@ -8,26 +16,26 @@ Reel turns browsing into an interactive canvas instead of a conventional poster 
 
 ## Features
 
-- Endless, wrapping poster canvas with drag and scroll navigation
-- Momentum-based movement and depth-style poster distortion
-- Movie and TV show discovery
-- Popular, trending, top-rated, and newest feeds
-- TMDB title search
-- Genre and minimum-rating filters
-- Grouped pill-style filter controls
-- Slash-tag advanced search
-- Search tags for type, genre, sort, year, decade, and rating
-- TV season and episode selector
-- Title details with poster, backdrop, overview, cast, genres, runtime, score, votes, and trailer
-- Fullscreen playback
-- Local caching of loaded titles
-- Progressive poster loading
-- Cached genre lists
-- Idle-aware canvas rendering for smoother navigation
-- Responsive mobile layout
-- Reduced-motion support
-- Bottom gradual blur with a soft fade into the background
-- Single-file frontend with no framework
+* Endless, wrapping poster canvas with drag and scroll navigation
+* Momentum-based movement and depth-style poster distortion
+* Movie and TV show discovery
+* Popular, trending, top-rated, and newest feeds
+* TMDB title search
+* Genre and minimum-rating filters
+* Grouped pill-style filter controls
+* Slash-tag advanced search
+* Search tags for type, genre, sort, year, decade, and rating
+* TV season and episode selector
+* Title details with poster, backdrop, overview, cast, genres, runtime, score, votes, and trailer
+* Fullscreen playback
+* Local caching of loaded titles
+* Progressive poster loading
+* Cached genre lists
+* Idle-aware canvas rendering for smoother navigation
+* Responsive mobile layout
+* Reduced-motion support
+* Bottom gradual blur with a soft fade into the background
+* Single-file frontend with no framework
 
 ## Advanced search
 
@@ -51,20 +59,20 @@ dune /movie /sci-fi /2021 /8+
 
 Supported filter types:
 
-| Syntax | Description |
-| --- | --- |
-| `/tv` | TV shows |
-| `/movie` | Movies |
-| `/popular` | Popular titles |
-| `/top` | Top-rated titles |
-| `/trending` | Trending titles |
-| `/new` | Newest titles |
-| `/horror` | Genre filter |
-| `/action` | Genre filter |
-| `/sci-fi` | Genre filter |
-| `/2020` | Release year |
-| `/2020s` | Release decade |
-| `/8+` | Minimum rating |
+| Syntax      | Description      |
+| ----------- | ---------------- |
+| `/tv`       | TV shows         |
+| `/movie`    | Movies           |
+| `/popular`  | Popular titles   |
+| `/top`      | Top-rated titles |
+| `/trending` | Trending titles  |
+| `/new`      | Newest titles    |
+| `/horror`   | Genre filter     |
+| `/action`   | Genre filter     |
+| `/sci-fi`   | Genre filter     |
+| `/2020`     | Release year     |
+| `/2020s`    | Release decade   |
+| `/8+`       | Minimum rating   |
 
 Genre tags are resolved against the TMDB genre list, with common aliases supported as well.
 
@@ -76,15 +84,15 @@ blade runner
 
 ## Controls
 
-| Input | Action |
-| --- | --- |
-| Drag | Move around the canvas |
-| Scroll | Move through the canvas |
-| `/` | Open search |
-| `Esc` | Close the active interface or player |
-| `←` `→` | Move horizontally |
-| `↑` `↓` | Move vertically |
-| Click poster | Open title details |
+| Input        | Action                               |
+| ------------ | ------------------------------------ |
+| Drag         | Move around the canvas               |
+| Scroll       | Move through the canvas              |
+| `/`          | Open search                          |
+| `Esc`        | Close the active interface or player |
+| `←` `→`      | Move horizontally                    |
+| `↑` `↓`      | Move vertically                      |
+| Click poster | Open title details                   |
 
 ## TV shows
 
@@ -94,13 +102,13 @@ Selecting a season refreshes the episode list immediately. The selected season a
 
 ## Tech stack
 
-- HTML5
-- CSS3
-- Vanilla JavaScript
-- Canvas 2D API
-- TMDB REST API
-- Native Fetch API
-- Manrope
+* HTML5
+* CSS3
+* Vanilla JavaScript
+* Canvas 2D API
+* TMDB REST API
+* Native Fetch API
+* Manrope
 
 The frontend does not use React, Vue, Tailwind, or a component library.
 
