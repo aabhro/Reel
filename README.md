@@ -1,14 +1,16 @@
 # Reel
 
+
+<img width="1366" height="655" alt="Reel interface" src="https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f" />
+
+<img width="1366" height="649" alt="Reel interface" src="https://github.com/user-attachments/assets/11e1b532-87e9-4ce1-9725-86d529fdf58b" />
+
+
 <p align="center">
   <img src="https://img.shields.io/github/last-commit/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Last commit">
   <img src="https://img.shields.io/github/issues-raw/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Open issues">
   <img src="https://img.shields.io/github/issues-pr-raw/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Pull requests">
 </p>
-
-<img width="1366" height="655" alt="Reel interface" src="https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f" />
-
-<img width="1366" height="649" alt="Reel interface" src="https://github.com/user-attachments/assets/11e1b532-87e9-4ce1-9725-86d529fdf58b" />
 
 A minimal, canvas-driven movie and TV discovery interface powered by TMDB.
 
