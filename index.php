@@ -5,7 +5,7 @@ $shareId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $shareId = ($shareId && $shareId > 0) ? $shareId : null;
 $title = 'Reel';
 $description = 'Discover movies and TV shows on Reel.';
-$image = $siteUrl . 'icon.png';
+$image='https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f';
 $canonical = $siteUrl;
 
 function tmdb_request($path, $apiKey) {
@@ -72,7 +72,7 @@ if ($shareId) {
 <meta property="og:url" content="<?= h($canonical) ?>">
 <meta property="og:image" content="<?= h($image) ?>">
 <meta property="og:image:alt" content="<?= h($title) ?>">
-<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="720">
 <meta property="og:site_name" content="Reel">
@@ -540,6 +540,7 @@ function primeImages(count=14){for(let i=0;i<Math.min(count,state.movies.length)
 async function resetAndLoad(mode="popular",query="",advanced=null){state.requestId+=1;state.mode=mode;state.query=query;state.searchRaw=mode==="search"?state.searchRaw:"";if(mode==="search"&&advanced){state.searchFilters=advanced;state.mediaType=advanced.mediaType;state.sort=advanced.sort;state.genre=advanced.genre;state.minRating=advanced.minRating}else if(mode!=="search"){state.searchFilters={mediaType:state.mediaType,sort:state.sort,genre:state.genre,minRating:state.minRating,year:null,decade:null}}state.nextPage=1;state.totalPages=1;state.pagesLoaded.clear();state.fetching.clear();state.travel=0;state.x=0;state.y=0;state.vx=0;state.vy=0;state.movies=[];state.movieIds.clear();state.worldAssignments.clear();state.lastHit.length=0;const label=mode==="search"?(state.searchRaw?`search · ${state.searchRaw}`:"search"):state.mediaType==="tv"?(mode==="trending"?"trending tv":mode==="top"?"top rated tv":mode==="newest"?"new tv":"tv cinema"):(mode==="trending"?"trending cinema":mode==="top"?"top rated":mode==="newest"?"new movies":"infinite cinema");modeLabel.textContent=label;state.dirty=true;startRenderer();closeFilters();await loadGenres(state.mediaType);if(mode==="search"&&state.genre)genreSelect.value=state.genre;await fetchPage(1,true);if(state.sort!=="trending"&&state.totalPages>1)fetchPage(2,true)}
 function maybeLoadMore(){if(state.fetching.size||state.sort==="trending")return;if(state.nextPage<=state.totalPages&&state.movies.length){state.travel=0;fetchPage(state.nextPage,true)}}
 const SHARE_BASE_URL="https://reel.gt.tc/";
+const BASE_SHARE_IMAGE="https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f";
 
 function setMeta(property,content){
   let meta=document.querySelector(`meta[property="${property}"]`);
@@ -572,13 +573,13 @@ function updateShareMetadata(movie){
   setMeta("og:title",title);
   setMeta("og:description",description);
   setMeta("og:url",shareUrl);
-  setMeta("og:image",image||`${SHARE_BASE_URL}icon.png`);
+  setMeta("og:image",image||BASE_SHARE_IMAGE);
   setMeta("og:image:alt",`${title} artwork`);
   setMeta("og:site_name","Reel");
   setNameMeta("twitter:card","summary_large_image");
   setNameMeta("twitter:title",title);
   setNameMeta("twitter:description",description);
-  setNameMeta("twitter:image",image||`${SHARE_BASE_URL}icon.png`);
+  setNameMeta("twitter:image",image||BASE_SHARE_IMAGE);
 }
 
 function resetShareMetadata(){
@@ -587,13 +588,13 @@ function resetShareMetadata(){
   setMeta("og:title","Reel");
   setMeta("og:description","Discover movies and TV shows on Reel.");
   setMeta("og:url",SHARE_BASE_URL);
-  setMeta("og:image",`${SHARE_BASE_URL}icon.png`);
+  setMeta("og:image",BASE_SHARE_IMAGE);
   setMeta("og:image:alt","Reel");
   setMeta("og:site_name","Reel");
   setNameMeta("twitter:card","summary_large_image");
   setNameMeta("twitter:title","Reel");
   setNameMeta("twitter:description","Discover movies and TV shows on Reel.");
-  setNameMeta("twitter:image",`${SHARE_BASE_URL}icon.png`);
+  setNameMeta("twitter:image",BASE_SHARE_IMAGE);
 }
 
 function updateShareUrl(id,replace=false){
