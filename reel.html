@@ -330,7 +330,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 <div class="bottom"><div class="hint">drag to explore · scroll to move · / to search</div><div class="status"><span class="status-dot"></span><span id="statusText">loading cinema</span></div></div>
 <div class="credit">Movie data and images from <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a>.</div>
 <div class="player-overlay" id="playerOverlay" aria-hidden="true"><div class="player-frame" id="playerFrame"><div class="player-loading" id="playerLoading"></div><iframe id="playerIframe" title="Movie player" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="origin-when-cross-origin"></iframe><div class="player-chrome"><div class="player-movie-title" id="playerMovieTitle">watching</div><div class="player-controls"><button class="player-control icon-button" id="playerFullscreen" title="Fullscreen" aria-label="Fullscreen"><i data-lucide="maximize"></i></button><button class="player-control close icon-button" id="playerClose" aria-label="Exit player" title="Close"><i data-lucide="x"></i></button></div></div></div></div>
-<div class="details-overlay" id="detailsOverlay"><aside class="details-panel" role="dialog" aria-modal="true" aria-label="Title details"><div class="details-backdrop"><img id="detailsBackdrop" src="" alt=""></div><div class="details-scroll" id="detailsScroll"><div class="details-top"><button class="modal-close icon-button" id="modalClose" aria-label="Close" title="Close"><i data-lucide="x"></i></button></div><div class="details-main"><div class="details-head"><div class="details-poster"><img id="modalPoster" src="" alt=""></div><div class="details-title"><h2 id="modalTitle"></h2><div class="details-original" id="modalOriginal"></div><div class="details-meta"><span id="modalYear"></span><span>·</span><span id="modalRuntime"></span><span>·</span><span id="modalGenres"></span></div><div class="score">★ <b id="modalRating">—</b><span id="modalVotes"></span></div></div></div><div class="details-copy"><h3>overview</h3><p id="modalOverview">No overview available.</p></div><div class="details-copy" id="castSection" hidden><h3>cast</h3><div class="cast" id="castList"></div></div><div class="tv-selector" id="tvSelector" aria-label="Choose season and episode"><div class="tv-selector-group"><select id="seasonSelect" aria-label="Season"></select><span class="tv-selector-arrow"></span></div><div class="tv-selector-group"><select id="episodeSelect" aria-label="Episode"></select><span class="tv-selector-arrow"></span></div></div><div class="details-actions"><button class="details-action primary icon-button" id="watchButton" type="button" title="Watch" aria-label="Watch"><i data-lucide="play"></i></button><a class="details-action icon-button" id="tmdbLink" href="#" target="_blank" rel="noopener" title="View on TMDB" aria-label="View on TMDB"><i data-lucide="external-link"></i></a><a class="details-action icon-button" id="trailerLink" href="#" target="_blank" rel="noopener" hidden title="Watch trailer" aria-label="Watch trailer"><i data-lucide="youtube"></i></a></div></div></div></aside></div>
+<div class="details-overlay" id="detailsOverlay"><aside class="details-panel" role="dialog" aria-modal="true" aria-label="Title details"><div class="details-backdrop"><img id="detailsBackdrop" src="" alt=""></div><div class="details-scroll" id="detailsScroll"><div class="details-top"><button class="modal-close icon-button" id="modalClose" aria-label="Close" title="Close"><i data-lucide="x"></i></button></div><div class="details-main"><div class="details-head"><div class="details-poster"><img id="modalPoster" src="" alt=""></div><div class="details-title"><h2 id="modalTitle"></h2><div class="details-original" id="modalOriginal"></div><div class="details-meta"><span id="modalYear"></span><span>·</span><span id="modalRuntime"></span><span>·</span><span id="modalGenres"></span></div><div class="score">★ <b id="modalRating">—</b><span id="modalVotes"></span></div></div></div><div class="details-copy"><h3>overview</h3><p id="modalOverview">No overview available.</p></div><div class="details-copy" id="castSection" hidden><h3>cast</h3><div class="cast" id="castList"></div></div><div class="tv-selector" id="tvSelector" aria-label="Choose season and episode"><div class="tv-selector-group"><select id="seasonSelect" aria-label="Season"></select><span class="tv-selector-arrow"></span></div><div class="tv-selector-group"><select id="episodeSelect" aria-label="Episode"></select><span class="tv-selector-arrow"></span></div></div><div class="details-actions"><button class="details-action primary icon-button" id="watchButton" type="button" title="Watch" aria-label="Watch"><i data-lucide="play"></i></button><button class="details-action icon-button" id="shareButton" type="button" title="Copy share link" aria-label="Copy share link"><i data-lucide="share-2"></i></button><a class="details-action icon-button" id="tmdbLink" href="#" target="_blank" rel="noopener" title="View on TMDB" aria-label="View on TMDB"><i data-lucide="external-link"></i></a><a class="details-action icon-button" id="trailerLink" href="#" target="_blank" rel="noopener" hidden title="Watch trailer" aria-label="Watch trailer"><i data-lucide="youtube"></i></a></div></div></div></aside></div>
 </div>
 <script>
 const TMDB_API_KEY="4e44d9029b1270a757cddc766a1bcb63";
@@ -376,6 +376,7 @@ const episodeSelect=document.getElementById("episodeSelect");
 const tmdbLink=document.getElementById("tmdbLink");
 const trailerLink=document.getElementById("trailerLink");
 const watchButton=document.getElementById("watchButton");
+const shareButton=document.getElementById("shareButton");
 const playerOverlay=document.getElementById("playerOverlay");
 const playerFrame=document.getElementById("playerFrame");
 const playerIframe=document.getElementById("playerIframe");
@@ -463,18 +464,130 @@ async function fetchPage(page,append=true){const requestId=state.requestId;const
 function primeImages(count=14){for(let i=0;i<Math.min(count,state.movies.length);i++)getImage(state.movies[i].poster_path)}
 async function resetAndLoad(mode="popular",query="",advanced=null){state.requestId+=1;state.mode=mode;state.query=query;state.searchRaw=mode==="search"?state.searchRaw:"";if(mode==="search"&&advanced){state.searchFilters=advanced;state.mediaType=advanced.mediaType;state.sort=advanced.sort;state.genre=advanced.genre;state.minRating=advanced.minRating}else if(mode!=="search"){state.searchFilters={mediaType:state.mediaType,sort:state.sort,genre:state.genre,minRating:state.minRating,year:null,decade:null}}state.nextPage=1;state.totalPages=1;state.pagesLoaded.clear();state.fetching.clear();state.travel=0;state.x=0;state.y=0;state.vx=0;state.vy=0;state.movies=[];state.movieIds.clear();state.worldAssignments.clear();state.lastHit.length=0;const label=mode==="search"?(state.searchRaw?`search · ${state.searchRaw}`:"search"):state.mediaType==="tv"?(mode==="trending"?"trending tv":mode==="top"?"top rated tv":mode==="newest"?"new tv":"tv cinema"):(mode==="trending"?"trending cinema":mode==="top"?"top rated":mode==="newest"?"new movies":"infinite cinema");modeLabel.textContent=label;state.dirty=true;startRenderer();closeFilters();await loadGenres(state.mediaType);if(mode==="search"&&state.genre)genreSelect.value=state.genre;await fetchPage(1,true);if(state.sort!=="trending"&&state.totalPages>1)fetchPage(2,true)}
 function maybeLoadMore(){if(state.fetching.size||state.sort==="trending")return;if(state.nextPage<=state.totalPages&&state.movies.length){state.travel=0;fetchPage(state.nextPage,true)}}
-function openMovie(movie){if(!movie)return;state.lastSelectedId=movie.id;state.currentMovie=movie;const isTV=state.mediaType==="tv"||movie.media_type==="tv"||(movie.name&&!movie.title);movie.media_type=isTV?"tv":"movie";detailsBackdrop.src=backdropUrl(movie.backdrop_path);detailsBackdrop.style.display=movie.backdrop_path?"block":"none";modalPoster.src=imageUrl(movie.poster_path||movie.backdrop_path,"w500");modalTitle.textContent=contentTitle(movie);modalOriginal.textContent=contentOriginal(movie)&&contentOriginal(movie)!==contentTitle(movie)?contentOriginal(movie):"";modalYear.textContent=contentDate(movie)?contentDate(movie).slice(0,4):"";modalRuntime.textContent="";modalGenres.textContent="";modalRating.textContent=movie.vote_average?Number(movie.vote_average).toFixed(1):"—";modalVotes.textContent=movie.vote_count?formatVotes(movie.vote_count):"";modalOverview.textContent=movie.overview||"No overview available.";tmdbLink.href=`https://www.themoviedb.org/${isTV?"tv":"movie"}/${movie.id}`;trailerLink.hidden=true;trailerLink.removeAttribute("href");castSection.hidden=true;castList.innerHTML="";tvSelector.classList.remove("show");seasonSelect.innerHTML="";episodeSelect.innerHTML="";seasonSelect.onchange=null;detailsOverlay.classList.add("open");detailsScroll.scrollTop=0;loadMovieDetails(movie.id,isTV)}
+const SHARE_BASE_URL="https://reel.gt.tc/";
+
+function setMeta(property,content){
+  let meta=document.querySelector(`meta[property="${property}"]`);
+  if(!meta){
+    meta=document.createElement("meta");
+    meta.setAttribute("property",property);
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content",content||"");
+}
+
+function setNameMeta(name,content){
+  let meta=document.querySelector(`meta[name="${name}"]`);
+  if(!meta){
+    meta=document.createElement("meta");
+    meta.setAttribute("name",name);
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content",content||"");
+}
+
+function updateShareMetadata(movie){
+  if(!movie)return;
+  const title=contentTitle(movie);
+  const description=(movie.overview||`Discover ${title} on Reel.`).replace(/\s+/g," ").trim();
+  const image=backdropUrl(movie.backdrop_path||movie.poster_path);
+  const shareUrl=`${SHARE_BASE_URL}?id=${encodeURIComponent(movie.id)}`;
+  document.title=`${title} · Reel`;
+  setMeta("og:type","website");
+  setMeta("og:title",title);
+  setMeta("og:description",description);
+  setMeta("og:url",shareUrl);
+  setMeta("og:image",image||`${SHARE_BASE_URL}icon.png`);
+  setMeta("og:image:alt",`${title} artwork`);
+  setMeta("og:site_name","Reel");
+  setNameMeta("twitter:card","summary_large_image");
+  setNameMeta("twitter:title",title);
+  setNameMeta("twitter:description",description);
+  setNameMeta("twitter:image",image||`${SHARE_BASE_URL}icon.png`);
+}
+
+function resetShareMetadata(){
+  document.title="Reel";
+  setMeta("og:type","website");
+  setMeta("og:title","Reel");
+  setMeta("og:description","Discover movies and TV shows on Reel.");
+  setMeta("og:url",SHARE_BASE_URL);
+  setMeta("og:image",`${SHARE_BASE_URL}icon.png`);
+  setMeta("og:image:alt","Reel");
+  setMeta("og:site_name","Reel");
+  setNameMeta("twitter:card","summary_large_image");
+  setNameMeta("twitter:title","Reel");
+  setNameMeta("twitter:description","Discover movies and TV shows on Reel.");
+  setNameMeta("twitter:image",`${SHARE_BASE_URL}icon.png`);
+}
+
+function updateShareUrl(id,replace=false){
+  const url=new URL(location.href);
+  url.searchParams.delete("id");
+  if(id)url.searchParams.set("id",String(id));
+  const next=url.pathname+(url.search||"")+(url.hash||"");
+  if(replace)history.replaceState({id:id||null},"",next);
+  else history.pushState({id:id||null},"",next);
+}
+
+async function copyShareLink(){
+  if(!state.currentMovie)return;
+  const url=`${SHARE_BASE_URL}?id=${encodeURIComponent(state.currentMovie.id)}`;
+  try{
+    await navigator.clipboard.writeText(url);
+    showToast("share link copied");
+  }catch{
+    const textarea=document.createElement("textarea");
+    textarea.value=url;
+    textarea.style.position="fixed";
+    textarea.style.left="-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try{
+      document.execCommand("copy");
+      showToast("share link copied");
+    }catch{
+      showToast("copy unavailable");
+    }
+    textarea.remove();
+  }
+}
+
+async function openSharedTitle(id){
+  const numericId=Number(id);
+  if(!Number.isInteger(numericId)||numericId<=0)return false;
+  try{
+    let item;
+    try{
+      item=await tmdb(`/movie/${numericId}`);
+      item.media_type="movie";
+    }catch{
+      item=await tmdb(`/tv/${numericId}`);
+      item.media_type="tv";
+    }
+    if(!item||!item.id)return false;
+    openMovie(item,{updateUrl:false});
+    return true;
+  }catch(error){
+    console.error(error);
+    showToast("could not open shared title");
+    return false;
+  }
+}
+
+function openMovie(movie,options={}){if(!movie)return;state.lastSelectedId=movie.id;state.currentMovie=movie;const isTV=state.mediaType==="tv"||movie.media_type==="tv"||(movie.name&&!movie.title);movie.media_type=isTV?"tv":"movie";const updateUrl=options.updateUrl!==false;if(updateUrl)updateShareUrl(movie.id,false);updateShareMetadata(movie);detailsBackdrop.src=backdropUrl(movie.backdrop_path);detailsBackdrop.style.display=movie.backdrop_path?"block":"none";modalPoster.src=imageUrl(movie.poster_path||movie.backdrop_path,"w500");modalTitle.textContent=contentTitle(movie);modalOriginal.textContent=contentOriginal(movie)&&contentOriginal(movie)!==contentTitle(movie)?contentOriginal(movie):"";modalYear.textContent=contentDate(movie)?contentDate(movie).slice(0,4):"";modalRuntime.textContent="";modalGenres.textContent="";modalRating.textContent=movie.vote_average?Number(movie.vote_average).toFixed(1):"—";modalVotes.textContent=movie.vote_count?formatVotes(movie.vote_count):"";modalOverview.textContent=movie.overview||"No overview available.";tmdbLink.href=`https://www.themoviedb.org/${isTV?"tv":"movie"}/${movie.id}`;trailerLink.hidden=true;trailerLink.removeAttribute("href");castSection.hidden=true;castList.innerHTML="";tvSelector.classList.remove("show");seasonSelect.innerHTML="";episodeSelect.innerHTML="";seasonSelect.onchange=null;detailsOverlay.classList.add("open");detailsScroll.scrollTop=0;loadMovieDetails(movie.id,isTV)}
 async function loadMovieDetails(id,isTV){try{const details=await tmdb(`/${isTV?"tv":"movie"}/${id}`,{append_to_response:"credits,videos"});if(!detailsOverlay.classList.contains("open")||state.lastSelectedId!==id)return;if(isTV){modalRuntime.textContent=details.number_of_seasons?`${details.number_of_seasons} season${details.number_of_seasons===1?"":"s"}`:"";modalGenres.textContent=Array.isArray(details.genres)?details.genres.slice(0,3).map(genre=>genre.name).join(" · "):"";modalOriginal.textContent=details.original_name&&details.original_name!==details.name?details.original_name:"";buildTvSelector(details)}else{modalRuntime.textContent=details.runtime?`${details.runtime} min`:"";modalGenres.textContent=Array.isArray(details.genres)?details.genres.slice(0,3).map(genre=>genre.name).join(" · "):"";if(details.original_title&&details.original_title!==details.title)modalOriginal.textContent=details.original_title;tvSelector.classList.remove("show")}modalRating.textContent=details.vote_average?Number(details.vote_average).toFixed(1):"—";modalVotes.textContent=details.vote_count?formatVotes(details.vote_count):"";const cast=Array.isArray(details.credits?.cast)?details.credits.cast.filter(person=>person&&person.name).slice(0,8):[];if(cast.length){castSection.hidden=false;for(const person of cast){const item=document.createElement("div");item.className="cast-item";const photo=document.createElement("div");photo.className="cast-photo";const image=document.createElement("img");image.alt=person.name;image.src=person.profile_path?imageUrl(person.profile_path,"w185"):"";photo.append(image);const name=document.createElement("div");name.className="cast-name";name.textContent=person.name;item.append(photo,name);castList.append(item)}}const videos=Array.isArray(details.videos?.results)?details.videos.results:[];const trailer=videos.find(video=>video.type==="Trailer"&&video.site==="YouTube")||videos.find(video=>video.type==="Teaser"&&video.site==="YouTube");if(trailer){trailerLink.hidden=false;trailerLink.href=`https://www.youtube.com/watch?v=${trailer.key}`}}catch(error){console.error(error)}}
 function buildTvSelector(details){const seasons=Array.isArray(details.seasons)?details.seasons.filter(season=>season&&season.season_number>0&&Number(season.episode_count)>0):[];if(!seasons.length){tvSelector.classList.remove("show");seasonSelect.innerHTML="";episodeSelect.innerHTML="";return}seasonSelect.innerHTML=seasons.map(season=>`<option value="${season.season_number}">season ${season.season_number}</option>`).join("");const populateEpisodes=()=>{const selectedSeason=seasons.find(season=>String(season.season_number)===seasonSelect.value)||seasons[0];const count=Math.max(1,Number(selectedSeason.episode_count)||1);episodeSelect.innerHTML="";for(let episode=1;episode<=count;episode++){const option=document.createElement("option");option.value=String(episode);option.textContent=`episode ${episode}`;episodeSelect.append(option)}};seasonSelect.onchange=populateEpisodes;seasonSelect.value=String(seasons[0].season_number);populateEpisodes();tvSelector.classList.add("show")}
 function watchMovie(movie){if(!movie||!movie.id)return;state.currentMovie=movie;const isTV=movie.media_type==="tv"||state.mediaType==="tv"||(movie.name&&!movie.title);playerMovieTitle.textContent=contentTitle(movie);playerLoading.style.display="block";playerOverlay.classList.add("open");playerOverlay.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";detailsOverlay.classList.remove("open");const params=new URLSearchParams({autoplay:"true",color:"%23ffffff",quality:"1080",back:"close"});if(isTV){params.set("s",seasonSelect.value||"1");params.set("e",episodeSelect.value||"1");params.set("autonext","true");playerIframe.src=`https://cinesrc.st/embed/tv/${encodeURIComponent(movie.id)}?${params.toString()}`}else playerIframe.src=`https://cinesrc.st/embed/movie/${encodeURIComponent(movie.id)}?${params.toString()}`}
 function closePlayer(){playerOverlay.classList.remove("open");playerOverlay.setAttribute("aria-hidden","true");playerLoading.style.display="none";playerIframe.src="about:blank";document.body.style.overflow="";try{if(document.fullscreenElement)document.exitFullscreen()}catch{}}
 watchButton.addEventListener("click",()=>{if(state.currentMovie)watchMovie(state.currentMovie)});
+shareButton.addEventListener("click",copyShareLink);
 playerClose.addEventListener("click",closePlayer);
 playerFullscreen.addEventListener("click",async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await playerFrame.requestFullscreen()}catch{showToast("fullscreen is unavailable")}});
 playerIframe.addEventListener("load",()=>{playerLoading.style.display="none"});
 window.addEventListener("message",event=>{if(event.origin!=="https://cinesrc.st")return;const data=event.data||{};if(data.type==="cinesrc:close")closePlayer();if(data.type==="cinesrc:error"){playerLoading.style.display="none";showToast("player reported a streaming error")}});
 let surpriseTimer=null;function closeSurprise(){clearTimeout(surpriseTimer);surpriseOverlay.classList.remove("open","loading");surpriseOverlay.setAttribute("aria-hidden","true");surpriseCard.classList.remove("reveal");surpriseKicker.textContent="finding something...";surpriseMeta.textContent=""}function runSurprise(){if(!state.movies.length){showToast("titles are still loading");return}const candidates=state.movies.length>1&&state.currentMovie?state.movies.filter(movie=>movie.id!==state.currentMovie.id):state.movies.slice();if(!candidates.length){showToast("not enough titles loaded yet");return}const movie=candidates[Math.floor(Math.random()*candidates.length)];const isTV=state.mediaType==="tv"||movie.media_type==="tv"||(movie.name&&!movie.title);surprisePoster.src=imageUrl(movie.poster_path||movie.backdrop_path,"w500");surprisePoster.alt=contentTitle(movie);surpriseTitle.textContent="surprise me";surpriseMeta.textContent="";surpriseKicker.textContent="finding something...";surpriseOverlay.classList.add("open","loading");surpriseOverlay.setAttribute("aria-hidden","false");surpriseCard.classList.remove("reveal");clearTimeout(surpriseTimer);requestAnimationFrame(()=>{requestAnimationFrame(()=>{surpriseCard.classList.add("reveal");surpriseKicker.textContent="your pick";surpriseTitle.textContent=contentTitle(movie);surpriseMeta.textContent=[contentDate(movie)?.slice(0,4),isTV?"tv":"movie",movie.vote_average?`★ ${Number(movie.vote_average).toFixed(1)}`:""].filter(Boolean).join(" · ");surpriseOverlay.classList.remove("loading")})});surpriseTimer=setTimeout(()=>{closeSurprise();openMovie(movie)},1250)}
-function closeMovie(){detailsOverlay.classList.remove("open");state.lastSelectedId=null}
+function closeMovie(updateUrl=true){detailsOverlay.classList.remove("open");state.lastSelectedId=null;if(updateUrl){updateShareUrl(null,true);resetShareMetadata()}}
 document.getElementById("modalClose").addEventListener("click",closeMovie);
 detailsOverlay.addEventListener("click",event=>{if(event.target===detailsOverlay)closeMovie()});
 function hitTest(x,y){let best=null,bestDistance=Infinity;for(let i=state.lastHit.length-1;i>=0;i--){const tile=state.lastHit[i],dx=x-tile.cx,dy=y-tile.cy,radiusX=tile.w*.5+8,radiusY=tile.h*.5+8;if(Math.abs(dx)<=radiusX&&Math.abs(dy)<=radiusY){const distance=(dx*dx)/(radiusX*radiusX)+(dy*dy)/(radiusY*radiusY);if(distance<bestDistance){bestDistance=distance;best=tile}}}return best?.movie||null}
@@ -515,8 +628,18 @@ document.getElementById("exploreButton").addEventListener("click",()=>{center.cl
 document.getElementById("randomButton").addEventListener("click",runSurprise);
 document.addEventListener("click",event=>{if(!filtersPanel.contains(event.target)&&event.target!==filterButton)closeFilters();if(!settingsPanel.contains(event.target)&&event.target!==settingsButton)closeSettings()});surpriseOverlay.addEventListener("click",event=>{if(event.target===surpriseOverlay)closeSurprise()});
 document.addEventListener("keydown",event=>{if(event.key==="Escape"){if(surpriseOverlay.classList.contains("open")){closeSurprise();return}if(playerOverlay.classList.contains("open")){closePlayer();return}closeMovie();closeSearch();closeFilters();closeSettings()}if(event.key==="/"&&document.activeElement!==searchInput&&!playerOverlay.classList.contains("open")){event.preventDefault();openSearch()}if(playerOverlay.classList.contains("open")||detailsOverlay.classList.contains("open"))return;if(event.key==="ArrowLeft"){state.vx+=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowRight"){state.vx-=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowUp"){state.vy+=1.1;state.dirty=true;startRenderer()}if(event.key==="ArrowDown"){state.vy-=1.1;state.dirty=true;startRenderer()}});
+window.addEventListener("popstate",async()=>{
+  const id=new URL(location.href).searchParams.get("id");
+  if(id){
+    await openSharedTitle(id);
+  }else{
+    closeMovie(false);
+    resetShareMetadata();
+  }
+});
+
 let resizeTimer;window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{resizeCanvas();state.dirty=true;startRenderer()},100)});
-async function boot(){loadSettings();lowPowerDevice=detectLowPowerDevice();applyQualityMode(QUALITY_MODE,false);updateEffectUI();updateSearchTags();if(window.lucide)lucide.createIcons();loadCache();mediaType.value=state.mediaType;sortType.value=state.sort;minRating.value=String(state.minRating);await loadGenres(state.mediaType);if(state.movies.length){updateStatus();primeImages(18);state.dirty=true;startRenderer()}try{setLoading(true);state.movies=[];state.movieIds.clear();state.pagesLoaded.clear();state.nextPage=1;state.totalPages=1;state.worldAssignments.clear();state.dirty=true;await fetchPage(1,true);if(state.sort!=="trending"&&state.totalPages>1)fetchPage(2,true)}catch(error){console.error(error);if(state.movies.length){updateStatus();showToast("using cached titles · "+(error.message||"TMDB unavailable"))}else{statusText.textContent="tmdb error";showToast(error.message||"Could not connect to TMDB")}}finally{setLoading(false)}setupPerformanceMonitor()}
+async function boot(){loadSettings();lowPowerDevice=detectLowPowerDevice();applyQualityMode(QUALITY_MODE,false);updateEffectUI();updateSearchTags();if(window.lucide)lucide.createIcons();resetShareMetadata();const sharedId=new URL(location.href).searchParams.get("id");loadCache();mediaType.value=state.mediaType;sortType.value=state.sort;minRating.value=String(state.minRating);await loadGenres(state.mediaType);if(state.movies.length){updateStatus();primeImages(18);state.dirty=true;startRenderer()}try{setLoading(true);state.movies=[];state.movieIds.clear();state.pagesLoaded.clear();state.nextPage=1;state.totalPages=1;state.worldAssignments.clear();state.dirty=true;await fetchPage(1,true);if(state.sort!=="trending"&&state.totalPages>1)fetchPage(2,true);if(sharedId)await openSharedTitle(sharedId)}catch(error){console.error(error);if(state.movies.length){updateStatus();showToast("using cached titles · "+(error.message||"TMDB unavailable"))}else{statusText.textContent="tmdb error";showToast(error.message||"Could not connect to TMDB")}}finally{setLoading(false)}setupPerformanceMonitor()}
 if(window.lucide)lucide.createIcons();
 boot();
 </script>
