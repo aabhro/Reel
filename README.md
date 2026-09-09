@@ -1,16 +1,22 @@
 # Reel
+<img width="1366" height="655" alt="image" src="https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f" />
 
-
-<img width="1366" height="655" alt="Reel interface" src="https://github.com/user-attachments/assets/dd77a8ae-79c1-4e67-9cfa-03f7be95b11f" />
-
-<img width="1366" height="649" alt="Reel interface" src="https://github.com/user-attachments/assets/11e1b532-87e9-4ce1-9725-86d529fdf58b" />
-
-
+<img width="1366" height="649" alt="image" src="https://github.com/user-attachments/assets/11e1b532-87e9-4ce1-9725-86d529fdf58b" />
 <p align="center">
-  <img src="https://img.shields.io/github/last-commit/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Last commit">
-  <img src="https://img.shields.io/github/issues-raw/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Open issues">
-  <img src="https://img.shields.io/github/issues-pr-raw/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Pull requests">
+  <a href="#features">Features</a> •
+  <a href="#advanced-search">Advanced Search</a> •
+  <a href="#controls">Controls</a> •
+  <a href="#tv-shows">TV Shows</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#project-structure">Project Structure</a> •
+  <a href="#running-locally">Running Locally</a> •
+  <a href="#tmdb-configuration">TMDB Configuration</a> •
+  <a href="#performance">Performance</a> •
+  <a href="#data-and-attribution">Attribution</a> •
+  <a href="#playback">Playback</a> •
+  <a href="#license">License</a>
 </p>
+<p align="center"> <img src="https://img.shields.io/github/last-commit/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Last commit"> <img src="https://img.shields.io/github/issues-raw/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Open issues"> <img src="https://img.shields.io/github/issues-pr-raw/aabhro/Reel.svg?style=flat-square&logo=github&logoColor=white" alt="Pull requests"> </p>
 
 A minimal, canvas-driven movie and TV discovery interface powered by TMDB.
 
@@ -164,3 +170,9 @@ Reel is not affiliated with or endorsed by TMDB.
 ## Playback
 
 Reel uses an external embed service for playback. Movie IDs and TV IDs are passed to the configured player, with the selected TV season and episode included for television content.
+
+## License
+
+No license has been added to this repository yet.
+
+Choose a license before distributing the project publicly if you want to define reuse and redistribution terms.
