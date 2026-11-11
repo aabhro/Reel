@@ -1,8 +1,6 @@
 # Reel
-<img width="1366" height="650" alt="image" src="https://github.com/user-attachments/assets/67af3fe6-ac75-4ffa-ac27-193fab34e128" />
+<img width="1366" height="653" alt="image" src="https://github.com/user-attachments/assets/fe42789d-9ce9-4051-874c-cf039351c159" />
 
-
-<img width="1366" height="649" alt="image" src="https://github.com/user-attachments/assets/11e1b532-87e9-4ce1-9725-86d529fdf58b" />
 <p align="center">
   <a href="#features">Features</a> •
   <a href="#advanced-search">Advanced Search</a> •
