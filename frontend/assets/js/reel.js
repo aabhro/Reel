@@ -7,6 +7,25 @@ catch(error){console.warn('Supabase client unavailable. Guest mode remains avail
 const PUBLIC_CONFIG = await fetch('/api/config', { headers:{ Accept:'application/json' } })
   .then(r=>r.ok?r.json():{})
   .catch(()=>({}));
+const PUBLIC_HOST_URL = (() => {
+  try { return new URL(PUBLIC_CONFIG.hostUrl || location.origin, location.origin).origin; }
+  catch { return location.origin; }
+})();
+const homepageCanonical = new URL('/', PUBLIC_HOST_URL).href;
+let canonicalLink = document.querySelector('link[rel="canonical"]');
+if (!canonicalLink) {
+  canonicalLink = document.createElement('link');
+  canonicalLink.rel = 'canonical';
+  document.head.appendChild(canonicalLink);
+}
+canonicalLink.href = homepageCanonical;
+let homepageOgUrl = document.querySelector('meta[property="og:url"]');
+if (!homepageOgUrl) {
+  homepageOgUrl = document.createElement('meta');
+  homepageOgUrl.setAttribute('property', 'og:url');
+  document.head.appendChild(homepageOgUrl);
+}
+homepageOgUrl.content = homepageCanonical;
 const supabase = createClient && PUBLIC_CONFIG.supabaseUrl && PUBLIC_CONFIG.supabaseAnonKey
   ? createClient(PUBLIC_CONFIG.supabaseUrl, PUBLIC_CONFIG.supabaseAnonKey, {
       auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
@@ -424,7 +443,7 @@ async function shareCurrentTitle(){
   const button=$('#share'),feedback=$('#share-feedback');
   const type=button.dataset.type||'movie',id=button.dataset.id;
   if(!id)return;
-  const url=new URL(sharePath(type,id),location.origin).href;
+  const url=new URL(sharePath(type,id),PUBLIC_HOST_URL).href;
   const title=$('#d-title').textContent||'Reel';
   const shareData={title:title+' | Reel',text:'Watch '+title+' on Reel.',url};
   if(navigator.share){

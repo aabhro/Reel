@@ -820,3 +820,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
   #hint{bottom:34px}
   .fade.top{height:110px}
 }
+
+/* Keep account and settings anchored to the right side of the header. */
+.bar>.tools{position:absolute;top:14px;right:var(--gut,28px);display:flex;align-items:center;justify-content:flex-end;gap:10px;width:auto;max-width:none;min-width:0;flex:none}
+@media(max-width:1200px){.bar>.tools{top:12px;right:16px}}
+@media(max-width:560px){.bar>.tools{top:10px;right:12px}}

@@ -47,7 +47,7 @@ The frontend is static HTML, CSS and JavaScript. The backend is made of Netlify 
 
 Movie links use `/movie/:id/` and TV links use `/tv/:id/`. The `share.mjs` function looks up the TMDB title and responds with server-rendered Open Graph and Twitter Card tags, including artwork, description and a "Watch on Reel" attribution. Browsers then load the normal Reel interface at the same URL.
 
-The browser receives only the Supabase URL and public publishable/anon key. It never receives a service_role key. The database's RLS policies require auth.uid() to match the row's user_id for every operation.
+The browser receives the Supabase URL, public publishable/anon key and HOST_URL through /api/config. HOST_URL is a public origin, not a secret. It controls copied/shared links and canonical metadata. If it is not set, links fall back to the current site origin. The browser never receives a service_role key. The database's RLS policies require auth.uid() to match the row's user_id for every operation.
 
 ## Deploy directly to Netlify
 
@@ -62,13 +62,15 @@ The browser receives only the Supabase URL and public publishable/anon key. It n
 - https://**--your-netlify-team.netlify.app/** for deploy previews.
 6. Enable Google and Discord under Supabase Authentication → Sign In / Providers. Follow the provider steps below.
 7. Add the environment variables below in Netlify project settings. Make sure they are available to Functions.
-8. Trigger a new Netlify deploy after adding or changing environment variables.
+8. Set HOST_URL to this deployment's public origin, without a trailing slash. Each separate deployment should use its own public base URL. If HOST_URL is omitted, Reel falls back to the request's current host.
+9. Trigger a new Netlify deploy after adding or changing environment variables.
 
 ### Netlify environment variables
 
 | Variable | Purpose |
 | --- | --- |
-| TMDB_API_KEY | Private TMDB API key used only by the serverless proxy |
+| HOST_URL | Public base URL for share links and canonical metadata, e.g. `https://your-site.netlify.app` |
+| TMDB_API_KEY | Private TMDB API key used by the serverless proxy and share metadata function |
 | SUPABASE_URL | Supabase project URL |
 | SUPABASE_ANON_KEY | Browser-safe publishable/anon key |
 
@@ -105,7 +107,7 @@ Supabase completes the OAuth exchange and redirects the browser back to Netlify.
 
 ## Run locally
 
-Copy .env.example to .env and fill in the three values. Then start Netlify Dev:
+Copy .env.example to .env and fill in the four values. For local development, set HOST_URL to http://localhost:8888. Then start Netlify Dev:
 
     npx netlify-cli dev
 

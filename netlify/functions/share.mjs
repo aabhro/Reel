@@ -7,6 +7,19 @@ export const config = {
   ]
 };
 
+function configuredHostUrl(requestUrl) {
+  const fallback = new URL(requestUrl).origin;
+  const configured = String(process.env.HOST_URL || '').trim();
+  if (!configured) return fallback;
+  try {
+    const parsed = new URL(configured);
+    return ['http:', 'https:'].includes(parsed.protocol) ? parsed.origin : fallback;
+  } catch {
+    console.error('HOST_URL must be an absolute URL. Falling back to the request host.');
+    return fallback;
+  }
+}
+
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const IMAGE_BASE = 'https://image.tmdb.org/t/p/';
 function escapeHtml(value = '') {
@@ -124,7 +137,7 @@ export default async (request) => {
     }
   }
 
-  const html = renderSharePage({ origin: url.origin, type, id, item });
+  const html = renderSharePage({ origin: configuredHostUrl(request.url), type, id, item });
   const headers = {
     'Content-Type': 'text/html; charset=utf-8',
     'Cache-Control': 'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600',
