@@ -1433,7 +1433,6 @@ async function loadSeason(id,season){
 }
 $('#tv-season').onchange=()=>openId.startsWith('tv:')&&loadSeason(+openId.slice(3),+$('#tv-season').value);
 $('#tv-episode').onchange=()=>{if(cur&&cur.media_type==='tv')cur={...cur,season_number:+$('#tv-season').value,episode_number:+$('#tv-episode').value}};
-}
 
 /* ---------- Player: full-screen CineSrc embed ---------- */
 const pl=$('#player'),pf=$('#pf');
@@ -1488,7 +1487,7 @@ const wall=(()=>{
   function pick(){group.updateMatrixWorld(true);ray.setFromCamera(ptr,cam);
     return ray.intersectObjects(items.filter(i=>!i.dying).map(i=>i.mesh),false)[0]||null}
   function caption(m){const c=$('#caption');if(!m){c.classList.remove('on');return}
-    $('#cap-t').textContent=m.title;$('#cap-m').innerHTML=`${yr(m)} · <b>${rate(m)}</b>${gnames(m)?' · '+esc(gnames(m)):''}`;c.classList.add('on')}
+    $('#cap-t').textContent=mediaTitle(m);$('#cap-m').innerHTML=`${yr(m)} · <b>${rate(m)}</b>${gnames(m)?' · '+esc(gnames(m)):''}`;c.classList.add('on')}
   function setPtr(e){const r=stage.getBoundingClientRect();ptr.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);px=ptr.x;py=ptr.y}
   /* click: camera flies to the poster, then the details overlay opens */
   function focus(it){if(pending||!dlg.hidden)return;focusIt=it;pending=true;caption(null);
@@ -1504,7 +1503,7 @@ const wall=(()=>{
   const queue=[],TRIES=['w342','w185','w500'];let active=0;
   function placeholder(m){const c=document.createElement('canvas');c.width=342;c.height=513;const g=c.getContext('2d');g.fillStyle='#171717';g.fillRect(0,0,342,513);
     g.fillStyle='#a3a3a3';g.font='500 26px Geist, sans-serif';g.textAlign='center';let line='',y=230;
-    for(const w of (m.title||'').split(' ')){if(line&&g.measureText(line+w).width>290){g.fillText(line.trim(),171,y);y+=32;line=''}line+=w+' '}g.fillText(line.trim(),171,y);return new THREE.CanvasTexture(c)}
+    for(const w of mediaTitle(m).split(' ')){if(line&&g.measureText(line+w).width>290){g.fillText(line.trim(),171,y);y+=32;line=''}line+=w+' '}g.fillText(line.trim(),171,y);return new THREE.CanvasTexture(c)}
   function apply(it,t){if(it.dying)return;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;it.mat.map=t;it.mat.color.set(0xffffff);it.mat.needsUpdate=true}
   function fetchTex(it,n,done){if(it.dying)return done();if(n>=TRIES.length){apply(it,placeholder(it.m));return done()}
     const img=new Image();img.crossOrigin='anonymous';let over=false;
