@@ -1178,9 +1178,11 @@ function applyMotion(){
   document.querySelectorAll('[data-motion-set]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.motionSet===S.motion));
 }
 function updateProfile(){
-  const name=S.profileName.trim()||'your space';
+  const name=S.profileName.trim()||'Guest';
   $('#brand-user').textContent='for '+name;
   $('#brand-note').textContent=S.profileNote.trim();
+  $('#nav-profile-name').textContent=name;
+  $('#nav-avatar').innerHTML=avatarMarkup(activeProfile?.avatar||0);
 }
 function renderFavoriteGenres(){
   const host=$('#fav-genres');if(!host)return;
@@ -1233,7 +1235,7 @@ $('#clr-h').onclick=()=>{lib.hist=[];saveLib();renderLib()};
 $('#exp').onclick=()=>{
   const prefs={};Object.keys(SETTINGS_DEFAULTS).forEach(k=>prefs[k]=S[k]);
   saveActiveProfileMetadata();
-  const backup={version:3,exportedAt:new Date().toISOString(),profiles,activeProfileId,settings:prefs};
+  const backup={version:3,exportedAt:new Date().toISOString(),profiles,activeProfileId,settings:Object.fromEntries(Object.entries(prefs).filter(([k])=>!['profileName','profileNote','favorites'].includes(k)))};
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
   a.download='reel-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
@@ -1493,6 +1495,116 @@ const wall=(()=>{
 })();
 
 /* ---------- Personalization and settings controls ---------- */
+let managingProfiles=false,editingProfileId=null,selectedAvatar=0;
+function renderProfileChooser(){
+  const host=$('#profile-grid');if(!host)return;
+  const tiles=profiles.map(p=>`<div class="profile-tile">
+    <button class="profile-choice" data-profile-select="${esc(p.id)}" aria-label="Continue as ${esc(p.name)}">
+      <span class="profile-portrait">${avatarMarkup(p.avatar)}</span><strong>${esc(p.name)}</strong>
+    </button>
+    ${managingProfiles?`<div class="profile-tile-actions"><button data-profile-edit="${esc(p.id)}">Edit</button><button data-profile-delete="${esc(p.id)}">Remove</button></div>`:''}
+  </div>`).join('');
+  const add=managingProfiles&&profiles.length<8?`<div class="profile-tile">
+    <button class="profile-choice profile-add" id="add-profile">
+      <span class="profile-portrait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><strong>Add profile</strong>
+    </button>
+  </div>`:'';
+  host.innerHTML=tiles+add;
+  $('#profile-screen').classList.toggle('profile-managing',managingProfiles);
+  $('#manage-profiles').textContent=managingProfiles?'Done':'Manage profiles';
+  $('#manage-profiles').hidden=!!editingProfileId;
+}
+function openProfileEditor(id=null){
+  editingProfileId=id;
+  const p=id?profiles.find(x=>x.id===id):null;
+  selectedAvatar=p?.avatar??(profiles.length%AVATARS.length);
+  $('#profile-editor-title').textContent=p?'Edit profile':'Create profile';
+  $('#profile-editor-name').value=p?.name||'';
+  $('#profile-error').textContent='';
+  $('#avatar-options').innerHTML=AVATARS.map((a,i)=>`<button class="avatar-option" data-avatar-choice="${i}" aria-label="Avatar ${i+1}" aria-pressed="${i===selectedAvatar}">${avatarMarkup(i)}</button>`).join('');
+  $('#profile-grid').hidden=true;
+  $('#profile-editor').hidden=false;
+  $('#manage-profiles').hidden=true;
+  $('#profile-editor-name').focus();
+}
+function closeProfileEditor(){
+  editingProfileId=null;
+  $('#profile-editor').hidden=true;
+  $('#profile-grid').hidden=false;
+  $('#manage-profiles').hidden=false;
+  $('#profile-error').textContent='';
+}
+function showProfilePicker(manage=false){
+  managingProfiles=manage;
+  closeProfileEditor();
+  renderProfileChooser();
+  $('#profile-screen').hidden=false;
+}
+function activateProfile(id){
+  const next=profiles.find(p=>p.id===id);if(!next)return;
+  if(activeProfile){
+    saveActiveProfileMetadata();
+    saveLib();
+  }
+  activeProfile=next;activeProfileId=next.id;
+  S.profileName=next.name;S.profileNote=next.note;S.favorites=[...next.favorites];
+  lib=copyLibrary(next.lib);cur=null;
+  try{localStorage.setItem('mw-active-profile',activeProfileId)}catch{}
+  saveActiveProfileMetadata();
+  $('#profile-screen').hidden=true;
+  document.body.classList.remove('fopen');
+  updateProfile();syncPreferenceControls();renderLib();syncWl();wall.refresh();load();
+}
+$('#profile-grid').addEventListener('click',e=>{
+  const select=e.target.closest('[data-profile-select]');
+  if(select){if(!managingProfiles)activateProfile(select.dataset.profileSelect);return}
+  const edit=e.target.closest('[data-profile-edit]');
+  if(edit){openProfileEditor(edit.dataset.profileEdit);return}
+  const remove=e.target.closest('[data-profile-delete]');
+  if(remove){
+    const id=remove.dataset.profileDelete;
+    if(remove.dataset.confirm!=='yes'){
+      remove.dataset.confirm='yes';remove.textContent='Confirm?';
+      setTimeout(()=>{if(remove.isConnected){delete remove.dataset.confirm;remove.textContent='Remove'}},3500);
+      return;
+    }
+    if(profiles.length<=1){$('#profile-error').textContent='Keep at least one profile.';return}
+    profiles=profiles.filter(p=>p.id!==id);
+    if(activeProfileId===id){
+      activeProfile=profiles[0];activeProfileId=activeProfile.id;
+      lib=copyLibrary(activeProfile.lib);S.profileName=activeProfile.name;S.profileNote=activeProfile.note;S.favorites=[...activeProfile.favorites];
+      try{localStorage.setItem('mw-active-profile',activeProfileId)}catch{}
+      updateProfile();syncPreferenceControls();renderLib();syncWl();wall.refresh();load();
+    }
+    persistProfiles();renderProfileChooser();return;
+  }
+  if(e.target.closest('#add-profile'))openProfileEditor();
+});
+$('#avatar-options').addEventListener('click',e=>{
+  const b=e.target.closest('[data-avatar-choice]');if(!b)return;
+  selectedAvatar=+b.dataset.avatarChoice;
+  $('#avatar-options').querySelectorAll('[data-avatar-choice]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+});
+$('#manage-profiles').onclick=()=>{managingProfiles=!managingProfiles;renderProfileChooser()};
+$('#profile-cancel').onclick=closeProfileEditor;
+$('#profile-save').onclick=()=>{
+  const name=$('#profile-editor-name').value.trim();
+  if(!name){$('#profile-error').textContent='Enter a profile name to continue.';$('#profile-editor-name').focus();return}
+  if(editingProfileId){
+    const p=profiles.find(x=>x.id===editingProfileId);if(!p)return;
+    p.name=name.slice(0,24);p.avatar=selectedAvatar;
+    if(p.id===activeProfileId){S.profileName=p.name;updateProfile();saveActiveProfileMetadata();syncPreferenceControls()}
+  }else{
+    if(profiles.length>=8){$('#profile-error').textContent='You can create up to 8 profiles.';return}
+    const p={id:'profile-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),name:name.slice(0,24),avatar:selectedAvatar,note:'',favorites:[],lib:emptyLibrary()};
+    profiles.push(p);persistProfiles();managingProfiles=false;activateProfile(p.id);closeProfileEditor();renderProfileChooser();return;
+  }
+  persistProfiles();closeProfileEditor();renderProfileChooser();
+};
+$('#profile-switch').onclick=()=>showProfilePicker(false);
+$('#switch-profile-settings').onclick=()=>{Motion.setOpen(stg,false,null,true);showProfilePicker(false)};
+$('#manage-profiles-settings').onclick=()=>{Motion.setOpen(stg,false,null,true);showProfilePicker(true)};
+
 function syncPreferenceControls(){
   $('#profile-name').value=S.profileName;$('#profile-note').value=S.profileNote;
   $('#wall-rows').value=S.rows;$('#wall-rows-v').textContent=S.rows;
@@ -1527,7 +1639,8 @@ $('#fav-genres').onclick=e=>{
 };
 $('#clear-favs').onclick=()=>{S.favorites=[];renderFavoriteGenres();savePrefs();if(S.sort==='personalized')load()};
 $('#reset-prefs').onclick=()=>{
-  Object.assign(S,SETTINGS_DEFAULTS,{favorites:[]});
+  Object.keys(SETTINGS_DEFAULTS).filter(k=>!['profileName','profileNote','favorites'].includes(k)).forEach(k=>S[k]=SETTINGS_DEFAULTS[k]);
+  S.profileName=activeProfile.name;S.profileNote=activeProfile.note;S.favorites=[...activeProfile.favorites];
   S.view=S.defaultView;
   try{localStorage.removeItem('mw-settings');localStorage.removeItem('mw-accent');localStorage.removeItem('mw-theme');localStorage.removeItem('mw-drift');localStorage.removeItem('mw-sort')}catch{}
   setAccent(PRE[0],false);setTheme('dark',false);setFont('geist',false);setDensity('comfortable',false);S.motion='system';applyMotion();
