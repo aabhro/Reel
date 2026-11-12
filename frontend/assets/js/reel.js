@@ -397,8 +397,68 @@ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{S.view=b.data
 /* ---------- Detail ---------- */
 const dlg=$('#dlg');
 let openId=0;
+const SHARE_ROUTE=/^\/(movie|tv)\/(\d+)\/?$/;
+function sharePath(type,id){return '/'+(type==='tv'?'tv':'movie')+'/'+encodeURIComponent(id)+'/'}
+function setDetailAddress(type,id){
+  const path=sharePath(type,id);
+  if(location.pathname!==path){
+    const alreadyOnShareRoute=SHARE_ROUTE.test(location.pathname);
+    history[alreadyOnShareRoute||!dlg.hidden?'replaceState':'pushState']({reelDetail:true},'',path);
+  }
+  document.title=(mediaTitle(movies.find(x=>x.id===id&&mediaType(x)===type)||{})||'Title')+' | Reel';
+}
+async function copyShareUrl(url){
+  if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(url);return}
+  const field=document.createElement('textarea');
+  field.value=url;field.setAttribute('readonly','');field.style.cssText='position:fixed;opacity:0;pointer-events:none';
+  document.body.appendChild(field);field.select();
+  const copied=document.execCommand('copy');field.remove();
+  if(!copied)throw new Error('Clipboard unavailable');
+}
+async function shareCurrentTitle(){
+  const button=$('#share'),feedback=$('#share-feedback');
+  const type=button.dataset.type||'movie',id=button.dataset.id;
+  if(!id)return;
+  const url=new URL(sharePath(type,id),location.origin).href;
+  const title=$('#d-title').textContent||'Reel';
+  const shareData={title:title+' | Reel',text:'Watch '+title+' on Reel.',url};
+  if(navigator.share){
+    try{await navigator.share(shareData);return}
+    catch(error){if(error?.name==='AbortError')return}
+  }
+  try{
+    await copyShareUrl(url);
+    feedback.textContent='Link copied';
+    button.dataset.tip='Link copied';
+    window.setTimeout(()=>{feedback.textContent='';button.dataset.tip='Share this title'},2200);
+  }catch{
+    feedback.textContent='Could not copy link';
+    window.setTimeout(()=>{feedback.textContent='';button.dataset.tip='Share this title'},2600);
+  }
+}
+$('#share').addEventListener('click',()=>{void shareCurrentTitle()});
+new MutationObserver(()=>{
+  if(dlg.hidden&&SHARE_ROUTE.test(location.pathname)){
+    history.replaceState(null,'','/');
+    document.title='Reel';
+  }
+}).observe(dlg,{attributes:true,attributeFilter:['hidden']});
+addEventListener('popstate',()=>{
+  const match=location.pathname.match(SHARE_ROUTE);
+  if(match){
+    const type=match[1];S.mediaType=type;syncMediaTypeControls();
+    void openDetail(Number(match[2]),null,null,type);
+  }else{
+    document.title='Reel';
+    if(!dlg.hidden)Motion.setOpen(dlg,false,null,false);
+  }
+});
 async function openDetail(id,trigger,fallback,typeOverride){
-  const type=typeOverride||mediaType(fallback||{media_type:S.mediaType}),m=movies.find(x=>x.id===id&&mediaType(x)===type)||fallback||{};openId=type+':'+id;cur=snap({...m,id,media_type:type});syncWl();
+  const type=typeOverride||mediaType(fallback||{media_type:S.mediaType}),m=movies.find(x=>x.id===id&&mediaType(x)===type)||fallback||{};
+  openId=type+':'+id;cur=snap({...m,id,media_type:type});syncWl();
+  setDetailAddress(type,id);
+  $('#share').dataset.type=type;$('#share').dataset.id=String(id);
+  $('#share-feedback').textContent='';$('#share').dataset.tip='Share this title';
   $('#d-title').textContent=mediaTitle(m);$('#d-over').textContent=m.overview||'No description available.';$('#d-tag').textContent='';
   $('#d-img').src=m.poster_path?IMG+'w342'+m.poster_path:'';
   $('#d-hero').style.backgroundImage=m.backdrop_path?`url(${IMG}w780${m.backdrop_path})`:'';
@@ -407,6 +467,8 @@ async function openDetail(id,trigger,fallback,typeOverride){
   Motion.setOpen(dlg,true,trigger);dlg.querySelector('.m-dialog__panel').scrollTop=0;
   try{const d=await api('/'+type+'/'+id,{append_to_response:'credits,videos'});
     if(openId!==type+':'+id)return;cur={...snap(d),media_type:type};syncWl();
+    $('#d-title').textContent=mediaTitle(d);
+    document.title=mediaTitle(d)+' | Reel';
     const runtime=d.runtime||(d.episode_run_time||[])[0];
     const t=runtime?` · ${Math.floor(runtime/60)}h ${runtime%60}m`:'';
     if(type==='tv'){
@@ -482,11 +544,22 @@ const wall=(()=>{
     items.forEach(i=>i.dying=true);queue.length=0;hover=null;focusIt=null;caption(null);
     const n=list.length,cols=Math.max(Math.ceil(n/rows),8),R=Math.max(6,cols*(PW+.14)/TAU),step=(PW+.14)/R,arc=cols*step,now=performance.now()/1000;
     loop=arc>=TAU-.05;wallR=R;lim=loop?Infinity:Math.max(0,arc/2-.9);yaw=0;vel=0;
+    const searchReveal=!!S.q.trim()&&S.view==='wall',centerRank=new Map();
+    if(searchReveal){
+      const order=list.map((m,i)=>{
+        const col=Math.floor(i/rows),row=i%rows;
+        const angle=(col+(row%2)*.5)*step-(loop?0:arc/2);
+        const vertical=Math.abs(row-(rows-1)/2);
+        return{i,distance:Math.abs(wrap(angle))+vertical*step*.35};
+      }).sort((a,b)=>a.distance-b.distance||a.i-b.i);
+      order.forEach((entry,rank)=>centerRank.set(entry.i,rank));
+    }
     list.forEach((m,i)=>{const col=Math.floor(i/rows),row=i%rows,a=(col+(row%2)*.5)*step-(loop?0:arc/2),y=(row-(rows-1)/2)*(PH+.14);
       const holder=new THREE.Object3D();holder.position.set(Math.sin(a)*R,y,-Math.cos(a)*R);holder.lookAt(0,0,0); /* bowl: outer rows lean toward you */
       const mat=new THREE.MeshBasicMaterial({color:0x171717,transparent:true,opacity:0,toneMapped:false});
       const mesh=new THREE.Mesh(geo,mat);mesh.position.z=reduce?0:-3;holder.add(mesh);group.add(holder);
-      const it={holder,mesh,mat,m,a,y,dying:false,start:reduce?0:now+.15+Math.min(i,60)*.012};mesh.userData.it=it;items.push(it);
+      const revealOrder=searchReveal?(centerRank.get(i)??i):i;
+      const it={holder,mesh,mat,m,a,y,dying:false,start:reduce?0:now+.15+Math.min(revealOrder,60)*.012};mesh.userData.it=it;items.push(it);
       it.chip=chipEl(m);queue.push(it);
     });
     queue.sort((x,y)=>Math.abs(wrap(x.a))-Math.abs(wrap(y.a)));pump();
@@ -944,5 +1017,8 @@ if(supabase){
 syncPreferenceControls();
 
 /* ---------- Start ---------- */
-renderProfileChooser();drawFilters();renderLib();load();
-syncMediaTypeControls();fetchGenres();
+renderProfileChooser();drawFilters();renderLib();
+const initialShare=location.pathname.match(SHARE_ROUTE);
+if(initialShare)S.mediaType=initialShare[1];
+syncMediaTypeControls();load();fetchGenres();
+if(initialShare)void openDetail(Number(initialShare[2]),null,null,initialShare[1]);
