@@ -1119,7 +1119,7 @@ if(!['wall','list'].includes(S.defaultView))S.defaultView='wall';
 if(!['movie','tv'].includes(S.mediaType))S.mediaType='movie';
 S.view=S.defaultView;
 const emptyLibrary=()=>({list:[],hist:[],prog:{}});
-const progressKey=m=>`${m.media_type||'movie'}:${m.id}:${m.media_type==='tv'?(m.season_number||1):0}:${m.media_type==='tv'?(m.episode_number||1):0}`;
+const progressKey=m=>`${m.media_type||'movie'}:${m.id}:${m.media_type==='tv'?(m.season_number??1):0}:${m.media_type==='tv'?(m.episode_number??1):0}`;
 const libraryKey=m=>`${m.media_type||'movie'}:${m.id}`;
 const copyLibrary=value=>{
   const list=(Array.isArray(value?.list)?value.list:[]).map(m=>({...m,media_type:m.media_type||'movie'}));
@@ -1235,13 +1235,19 @@ let lib=copyLibrary(activeProfile.lib),cur=null;
 const saveLib=()=>{if(!activeProfile)return;activeProfile.lib=copyLibrary(lib);persistProfiles();};
 const snap=m=>({id:m.id,title:mediaTitle(m),name:m.name,media_type:mediaType(m),poster_path:m.poster_path,backdrop_path:m.backdrop_path,release_date:m.release_date,first_air_date:m.first_air_date,vote_average:m.vote_average,season_number:m.season_number,episode_number:m.episode_number});
 const inList=m=>{const key=typeof m==='object'?libraryKey(m):`${S.mediaType}:${m}`;return lib.list.some(x=>libraryKey(x)===key)},chipTxt=m=>rate(m)+(inList(m)?' · Saved':'');
-const meta=(id,type=S.mediaType)=>lib.list.find(x=>libraryKey(x)===`${type}:${id}`)||lib.hist.find(x=>libraryKey(x)===`${type}:${id}`)||Object.values(lib.prog).find(x=>x.id==id&&mediaType(x)===type);
+const meta=(id,type=S.mediaType,season,episode)=>{
+  if(type==='tv'&&season!==''&&episode!==''){
+    const exact=lib.prog[progressKey({id,media_type:type,season_number:+season,episode_number:+episode})];
+    if(exact)return exact;
+  }
+  return lib.list.find(x=>libraryKey(x)===`${type}:${id}`)||lib.hist.find(x=>libraryKey(x)===`${type}:${id}`)||Object.values(lib.prog).find(x=>x.id==id&&mediaType(x)===type);
+};
 const fmt=s=>{s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}h ${m}m`:`${m}m`};
 const when=t=>new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'});
 function syncWl(){const b=$('#wl'),on=cur&&inList(cur);b.setAttribute('aria-pressed',!!on);b.textContent=on?'On watchlist':'Add to watchlist'}
 function toggleList(m){lib.list=inList(m)?lib.list.filter(x=>libraryKey(x)!==libraryKey(m)):[snap(m),...lib.list];saveLib();syncWl();renderLib();wall.refresh()}
 $('#wl').onclick=()=>cur&&toggleList(cur);
-const act=(a,m,t)=>`<button class="lnk" data-act="${a}" data-id="${m.id}" data-type="${mediaType(m)}">${t}</button>`;
+const act=(a,m,t)=>`<button class="lnk" data-act="${a}" data-id="${m.id}" data-type="${mediaType(m)}" data-season="${m.season_number??''}" data-episode="${m.episode_number??''}">${t}</button>`;
 const lrow=(m,sub,acts,bar='')=>`<div class="lr"><img alt="" loading="lazy" src="${m.poster_path?IMG+'w92'+m.poster_path:''}"><div class="lt"><b>${esc(m.title)}</b><span>${sub}</span>${bar}</div><div class="la">${acts}</div></div>`;
 function renderLib(){
   const empty=t=>`<p class="empty">${t}</p>`;
@@ -1256,10 +1262,10 @@ const stg=$('#settings');
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===t));
   document.querySelectorAll('[data-pane]').forEach(p=>p.hidden=p.dataset.pane!==t.dataset.tab);renderLib()});
 document.querySelector('[data-motion-open="#settings"]').addEventListener('click',renderLib);
-stg.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const id=+b.dataset.id,type=b.dataset.type||'movie',a=b.dataset.act,m=meta(id,type);
+stg.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const id=+b.dataset.id,type=b.dataset.type||'movie',a=b.dataset.act,season=b.dataset.season,episode=b.dataset.episode,m=meta(id,type,season,episode);
   if(a==='rmlist'){lib.list=lib.list.filter(x=>libraryKey(x)!==`${type}:${id}`);wall.refresh();syncWl()}
   else if(a==='rmhist')lib.hist=lib.hist.filter(x=>libraryKey(x)!==`${type}:${id}`);
-  else if(a==='rmprog'){Object.keys(lib.prog).forEach(k=>{if(lib.prog[k].id==id&&mediaType(lib.prog[k])===type)delete lib.prog[k]})}
+  else if(a==='rmprog'){if(type==='tv'&&season!==''&&episode!=='')delete lib.prog[progressKey({id,media_type:type,season_number:+season,episode_number:+episode})];else Object.keys(lib.prog).forEach(k=>{if(lib.prog[k].id==id&&mediaType(lib.prog[k])===type)delete lib.prog[k]})}
   else if(m){Motion.setOpen(stg,false);if(a==='open')openDetail(id,null,m,type);else startPlay(m);return}
   saveLib();renderLib()});
 $('#clr-h').onclick=()=>{lib.hist=[];saveLib();renderLib()};
@@ -1330,6 +1336,7 @@ async function load(){
     if(S.q){ all=all.filter(m=>(!S.genre||m.genre_ids?.includes(+S.genre))&&(!S.y1||+yr(m)>=+S.y1)&&(!S.y2||+yr(m)<=+S.y2)&&m.vote_average>=S.rt);
       const k=S.sort.startsWith('vote')?m=>m.vote_count>20?m.vote_average:0:S.sort.startsWith('primary')?m=>m.release_date||m.first_air_date||'':null;
       if(k)all.sort((a,b)=>k(a)<k(b)?1:-1); }
+    all=all.map(m=>({...m,media_type:type}));
     if(S.sort==='personalized'&&S.favorites.length){
       const fav=new Set(S.favorites);
       const score=m=>(m.genre_ids||[]).reduce((n,id)=>n+(fav.has(id)?1:0),0);
@@ -1439,8 +1446,8 @@ const pl=$('#player'),pf=$('#pf');
 let playing=null,lastT=0,lastD=0,lastSave=0;
 function saveProg(done){if(!playing||!lastD)return;lib.prog[progressKey(playing)]={...playing,t:lastT,d:lastD,at:Date.now(),done:!!done||lastT/lastD>.92};saveLib();renderLib()}
 function startPlay(m){
-  const type=mediaType(m);let item={...snap(m),season_number:m.season_number||1,episode_number:m.episode_number||1};
-  if(type==='tv'&&!m.season_number&&!m.episode_number){const recent=Object.values(lib.prog).filter(p=>p.id==m.id&&mediaType(p)==='tv'&&!p.done).sort((a,b)=>b.at-a.at)[0];if(recent)item={...item,season_number:recent.season_number,episode_number:recent.episode_number}}
+  const type=mediaType(m);let item={...snap(m),season_number:m.season_number??1,episode_number:m.episode_number??1};
+  if(type==='tv'&&(m.season_number==null||m.episode_number==null)){const recent=Object.values(lib.prog).filter(p=>p.id==m.id&&mediaType(p)==='tv'&&!p.done).sort((a,b)=>b.at-a.at)[0];if(recent)item={...item,season_number:recent.season_number,episode_number:recent.episode_number}}
   playing=item;const pr=lib.prog[progressKey(playing)];lastT=pr?.t||0;lastD=pr?.d||0;lastSave=0;
   lib.hist=[{...playing,at:Date.now()},...lib.hist.filter(x=>libraryKey(x)!==libraryKey(playing))].slice(0,100);saveLib();
   const acc=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
