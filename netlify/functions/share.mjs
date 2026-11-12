@@ -122,7 +122,7 @@ export default async (request) => {
     'Referrer-Policy': 'strict-origin-when-cross-origin'
   };
   return new Response(request.method === 'HEAD' ? null : html, {
-    status: item ? 200 : 200,
+    status: 200,
     headers
   });
 };
