@@ -1,6 +1,8 @@
 
 import * as THREE from 'three';
-import { createClient } from '@supabase/supabase-js';
+let createClient=null;
+try{({createClient}=await import('@supabase/supabase-js'))}
+catch(error){console.warn('Supabase client unavailable. Guest mode remains available.',error)}
 
 const PUBLIC_CONFIG = await fetch('/api/config', { headers:{ Accept:'application/json' } })
   .then(r=>r.ok?r.json():{})
