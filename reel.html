@@ -1006,7 +1006,7 @@ let systemReduce=matchMedia('(prefers-reduced-motion: reduce)').matches, reduce=
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const yr=m=>(m.release_date||'').slice(0,4), rate=m=>m.vote_average?m.vote_average.toFixed(1):'–';
 const SETTINGS_DEFAULTS={
-  profileName:'abhro',profileNote:'',favorites:[],theme:'dark',accent:'#f5a524',
+  profileName:'abhro',profileNote:'',favorites:[],theme:'dark',accent:'#f5a524',sort:'popularity.desc',
   font:'geist',density:'comfortable',rows:3,posterSize:1,sensitivity:1,
   drift:true,driftSpeed:1,showMini:true,showChips:true,showHint:true,
   motion:'system',defaultView:'wall'
@@ -1188,12 +1188,12 @@ function drawFilters(){
   $('#rv').textContent=S.rt?`${(+S.rt).toFixed(1)} and up`:'Any'}
 $('#filters').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b)return;
   if('sort'in b.dataset)S.sort=b.dataset.sort;if('genre'in b.dataset)S.genre=b.dataset.genre;
-  try{localStorage.setItem('mw-sort',S.sort)}catch{}drawFilters();load()});
+  try{localStorage.setItem('mw-sort',S.sort)}catch{}savePrefs();drawFilters();load()});
 let dt;const later=()=>{clearTimeout(dt);dt=setTimeout(load,350)};
 const yearIn=(el,k)=>el.oninput=()=>{el.value=el.value.replace(/\D/g,'');S[k]=el.value.length===4?el.value:'';if(el.value.length===4||!el.value)later()};
 yearIn($('#y1'),'y1');yearIn($('#y2'),'y2');
 $('#rt').oninput=e=>{S.rt=+e.target.value;$('#rv').textContent=S.rt?`${S.rt.toFixed(1)} and up`:'Any';later()};
-function clearFilters(){Object.assign(S,{genre:'',y1:'',y2:'',rt:0,sort:'popularity.desc'});try{localStorage.setItem('mw-sort',S.sort)}catch{}$('#y1').value=$('#y2').value='';$('#rt').value=0;drawFilters();load()}
+function clearFilters(){Object.assign(S,{genre:'',y1:'',y2:'',rt:0,sort:'popularity.desc'});try{localStorage.setItem('mw-sort',S.sort)}catch{}savePrefs();$('#y1').value=$('#y2').value='';$('#rt').value=0;drawFilters();load()}
 $('#reset').onclick=clearFilters;$('#fbtn').onclick=()=>document.body.classList.toggle('fopen');
 $('#q').oninput=e=>{S.q=e.target.value.trim();$('#qc').hidden=!e.target.value;later()};
 $('#qc').onclick=()=>{$('#q').value='';S.q='';$('#qc').hidden=true;$('#q').focus();load()};
@@ -1395,9 +1395,9 @@ $('#clear-favs').onclick=()=>{S.favorites=[];renderFavoriteGenres();savePrefs();
 $('#reset-prefs').onclick=()=>{
   Object.assign(S,SETTINGS_DEFAULTS,{favorites:[]});
   S.view=S.defaultView;
-  try{localStorage.removeItem('mw-settings');localStorage.removeItem('mw-accent');localStorage.removeItem('mw-theme');localStorage.removeItem('mw-drift')}catch{}
+  try{localStorage.removeItem('mw-settings');localStorage.removeItem('mw-accent');localStorage.removeItem('mw-theme');localStorage.removeItem('mw-drift');localStorage.removeItem('mw-sort')}catch{}
   setAccent(PRE[0],false);setTheme('dark',false);setFont('geist',false);setDensity('comfortable',false);S.motion='system';applyMotion();
-  syncPreferenceControls();wall.configure();savePrefs();
+  drawFilters();syncPreferenceControls();wall.configure();savePrefs();load();
 };
 
 syncPreferenceControls();
