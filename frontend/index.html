@@ -42,42 +42,49 @@
       <div class="profile-editor__actions"><button id="profile-cancel">Cancel</button><button id="profile-save" class="primary">Save profile</button></div>
     </div>
     <div class="profile-screen__footer">
-      <button id="manage-profiles">Manage profiles</button>
+      <button id="manage-profiles" data-tip="Create, edit or remove profiles">Manage profiles</button>
     </div>
-    <section class="account-auth" aria-label="Account sign in">
-      <div class="account-auth__heading">
-        <span class="account-eyebrow">REEL ACCOUNT</span>
-        <h2>Take your library with you</h2>
-        <p>Sign in to sync your profiles, watchlists and viewing progress across devices.</p>
-      </div>
-      <div class="account-identity" id="account-identity" hidden>
-        <span class="account-avatar" id="account-avatar"></span>
-        <span class="account-identity__details">
-          <strong id="account-display-name">Reel user</strong>
-          <span id="account-email"></span>
+    <details class="account-disclosure" id="account-disclosure">
+      <summary class="account-disclosure__summary">
+        <span class="account-disclosure__icon" id="account-summary-icon"><i data-lucide="cloud" aria-hidden="true"></i></span>
+        <span class="account-disclosure__copy">
+          <strong id="account-summary-title">Reel account</strong>
+          <small id="account-summary-subtitle">Sign in to sync your library</small>
         </span>
-        <span class="account-provider" id="account-provider"></span>
+        <span class="account-disclosure__avatar" id="account-summary-avatar" hidden></span>
+        <i class="account-disclosure__chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+      </summary>
+      <div class="account-disclosure__content">
+        <p class="account-description" id="account-description">Keep your profiles, watchlists and viewing progress in sync across devices.</p>
+        <div class="account-identity" id="account-identity" hidden>
+          <span class="account-avatar" id="account-avatar"></span>
+          <span class="account-identity__details">
+            <strong id="account-display-name">Reel user</strong>
+            <span id="account-email"></span>
+          </span>
+          <span class="account-provider" id="account-provider"></span>
+        </div>
+        <div class="auth-actions" id="auth-actions">
+          <button class="auth-btn" type="button" data-auth-provider="google" data-tip="Continue with your Google account">
+            <svg class="auth-provider-icon google-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.9-.4-4.3H24v8.2h11a9.4 9.4 0 0 1-4.1 6.1v5.3h6.7c3.9-3.6 6-8.9 6-15.3Z"/>
+              <path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.3c-1.8 1.2-4.1 2-6.8 2-5.2 0-9.7-3.5-11.3-8.2H5.8v5.3A20 20 0 0 0 24 44Z"/>
+              <path fill="#FBBC05" d="M12.7 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8l6.9-5.3Z"/>
+              <path fill="#EA4335" d="M24 12.2c3 0 5.7 1 7.8 3.1l5.9-5.9A19.7 19.7 0 0 0 24 4 20 20 0 0 0 5.8 15.1l6.9 5.3c1.6-4.7 6.1-8.2 11.3-8.2Z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+          <button class="auth-btn" type="button" data-auth-provider="discord" data-tip="Continue with your Discord account">
+            <svg class="auth-provider-icon discord-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M19.7 5.1a18.5 18.5 0 0 0-4.5-1.4l-.6 1.2a17 17 0 0 0-5.2 0l-.6-1.2a18.5 18.5 0 0 0-4.5 1.4C1.4 9.3.6 13.4 1 17.4a18.2 18.2 0 0 0 5.5 2.8l1.2-2a11.8 11.8 0 0 1-1.9-.9l.5-.4a13.1 13.1 0 0 0 11.4 0l.5.4a11.8 11.8 0 0 1-1.9.9l1.2 2a18.2 18.2 0 0 0 5.5-2.8c.5-4.6-.8-8.7-3.3-12.3ZM8.6 14.8c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.8 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/>
+            </svg>
+            <span>Continue with Discord</span>
+          </button>
+        </div>
+        <p class="account-status" id="account-status" aria-live="polite">Guest mode. Your data stays in this browser until you sign in.</p>
+        <button id="sign-out" type="button" hidden>Sign out</button>
       </div>
-      <p class="account-status" id="account-status" aria-live="polite">Guest mode. Your data stays in this browser until you sign in.</p>
-      <div class="auth-actions" id="auth-actions">
-        <button class="auth-btn" type="button" data-auth-provider="google">
-          <svg class="auth-provider-icon google-icon" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.9-.4-4.3H24v8.2h11a9.4 9.4 0 0 1-4.1 6.1v5.3h6.7c3.9-3.6 6-8.9 6-15.3Z"/>
-            <path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.3c-1.8 1.2-4.1 2-6.8 2-5.2 0-9.7-3.5-11.3-8.2H5.8v5.3A20 20 0 0 0 24 44Z"/>
-            <path fill="#FBBC05" d="M12.7 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8l6.9-5.3Z"/>
-            <path fill="#EA4335" d="M24 12.2c3 0 5.7 1 7.8 3.1l5.9-5.9A19.7 19.7 0 0 0 24 4 20 20 0 0 0 5.8 15.1l6.9 5.3c1.6-4.7 6.1-8.2 11.3-8.2Z"/>
-          </svg>
-          <span>Continue with Google</span>
-        </button>
-        <button class="auth-btn" type="button" data-auth-provider="discord">
-          <svg class="auth-provider-icon discord-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M19.7 5.1a18.5 18.5 0 0 0-4.5-1.4l-.6 1.2a17 17 0 0 0-5.2 0l-.6-1.2a18.5 18.5 0 0 0-4.5 1.4C1.4 9.3.6 13.4 1 17.4a18.2 18.2 0 0 0 5.5 2.8l1.2-2a11.8 11.8 0 0 1-1.9-.9l.5-.4a13.1 13.1 0 0 0 11.4 0l.5.4a11.8 11.8 0 0 1-1.9.9l1.2 2a18.2 18.2 0 0 0 5.5-2.8c.5-4.6-.8-8.7-3.3-12.3ZM8.6 14.8c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.8 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/>
-          </svg>
-          <span>Continue with Discord</span>
-        </button>
-      </div>
-      <button id="sign-out" type="button" hidden>Sign out</button>
-    </section>
+    </details>
   </div>
 </section>
 <div id="stage" aria-label="Interactive wall of movie posters"></div>
@@ -91,7 +98,7 @@
     <kbd>Ctrl K</kbd>
   </div>
   <div class="tools">
-    <button class="profile-switch" id="profile-switch" aria-label="Account and profiles" title="Account and profiles"><span class="profile-avatar" id="nav-avatar"></span><span class="profile-switch__text"><small>Account</small><span id="nav-profile-name">Guest</span></span><svg class="profile-switch__chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="profile-switch" id="profile-switch" aria-label="Account and profiles" data-tip="Switch profile or manage your account"><span class="profile-avatar" id="nav-avatar"></span><span class="profile-switch__text"><small>Account</small><span id="nav-profile-name">Guest</span></span><svg class="profile-switch__chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <span class="nav-separator" aria-hidden="true"></span>
     <div class="seg media-switch" role="group" aria-label="Content type">
       <button data-media-type="movie" aria-pressed="true">Movies</button><button data-media-type="tv" aria-pressed="false">TV shows</button>
