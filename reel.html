@@ -1063,7 +1063,7 @@ function updateProfile(){
 }
 function renderFavoriteGenres(){
   const host=$('#fav-genres');if(!host)return;
-  host.innerHTML=genres.length?genres.map(g=>`<button class="favorite-chip" data-favorite="${g.id}" aria-pressed="${S.favorites.includes(g.id)}">${esc(g.name)}</button>`).join():'<span class="empty">Genres are unavailable right now.</span>';
+  host.innerHTML=genres.length?genres.map(g=>`<button class="favorite-chip" data-favorite="${g.id}" aria-pressed="${S.favorites.includes(g.id)}">${esc(g.name)}</button>`).join(''):'<span class="empty">Genres are unavailable right now.</span>';
 }
 $('#sws').innerHTML=PRE.map(c=>`<button class="sw" data-c="${c}" style="background:${c}" aria-label="Use accent ${c}" aria-pressed="false"></button>`).join('');
 $('#sws').onclick=e=>{const b=e.target.closest('.sw');if(b)setAccent(b.dataset.c)};
@@ -1135,7 +1135,7 @@ $('#imp').onchange=async e=>{
       updateProfile();renderFavoriteGenres();wall.configure();syncPreferenceControls();syncView();
     }
     saveLib();savePrefs();renderLib();load();
-  }catch{alert('This backup could not be read.')}
+  }catch{$('#p-prog').innerHTML='<p class="empty">This backup could not be read. Check that it is a valid Reel JSON backup.</p>'}
   e.target.value='';
 };
 let wipeT;function disarm(){const b=$('#wipe');delete b.dataset.arm;b.textContent='Clear library';clearTimeout(wipeT)}
@@ -1193,7 +1193,7 @@ let dt;const later=()=>{clearTimeout(dt);dt=setTimeout(load,350)};
 const yearIn=(el,k)=>el.oninput=()=>{el.value=el.value.replace(/\D/g,'');S[k]=el.value.length===4?el.value:'';if(el.value.length===4||!el.value)later()};
 yearIn($('#y1'),'y1');yearIn($('#y2'),'y2');
 $('#rt').oninput=e=>{S.rt=+e.target.value;$('#rv').textContent=S.rt?`${S.rt.toFixed(1)} and up`:'Any';later()};
-function clearFilters(){Object.assign(S,{genre:'',y1:'',y2:'',rt:0,sort:'popularity.desc'});$('#y1').value=$('#y2').value='';$('#rt').value=0;drawFilters();load()}
+function clearFilters(){Object.assign(S,{genre:'',y1:'',y2:'',rt:0,sort:'popularity.desc'});try{localStorage.setItem('mw-sort',S.sort)}catch{}$('#y1').value=$('#y2').value='';$('#rt').value=0;drawFilters();load()}
 $('#reset').onclick=clearFilters;$('#fbtn').onclick=()=>document.body.classList.toggle('fopen');
 $('#q').oninput=e=>{S.q=e.target.value.trim();$('#qc').hidden=!e.target.value;later()};
 $('#qc').onclick=()=>{$('#q').value='';S.q='';$('#qc').hidden=true;$('#q').focus();load()};
@@ -1359,7 +1359,6 @@ const wall=(()=>{
 })();
 
 /* ---------- Personalization and settings controls ---------- */
-function syncDrift(){drift.setAttribute('aria-pressed',S.drift);drift.textContent=S.drift?'Auto-drift on':'Auto-drift off'}
 function syncPreferenceControls(){
   $('#profile-name').value=S.profileName;$('#profile-note').value=S.profileNote;
   $('#wall-rows').value=S.rows;$('#wall-rows-v').textContent=S.rows;
