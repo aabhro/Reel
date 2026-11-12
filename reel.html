@@ -417,6 +417,49 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 .favorite-chip[aria-pressed=true]::before{content:"";display:inline-block;width:5px;height:5px;margin:0 7px 1px 0;border-radius:50%;background:var(--accent)}
 .setting-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 #imp{display:none}
+.profile-switch{display:flex;align-items:center;gap:8px;padding:4px 9px 4px 4px;border:1px solid var(--border);border-radius:999px;color:var(--text-2);font-size:12px;transition:border-color var(--m-duration-control),color var(--m-duration-control)}
+.profile-switch:hover{border-color:var(--text-mute);color:var(--text)}
+.profile-switch .profile-avatar{width:26px;height:26px;border-radius:50%;overflow:hidden;display:block;flex:none}
+.profile-switch .profile-avatar svg{width:100%;height:100%;display:block}
+.profile-screen{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;padding:28px;background:#0a0a0a;color:#f5f5f5;overflow:auto}
+.profile-screen[hidden]{display:none!important}
+.profile-screen__inner{width:min(900px,100%);margin:auto;text-align:center}
+.profile-wordmark{font-size:15px;font-weight:600;letter-spacing:-.06em;color:#a3a3a3;margin-bottom:38px}
+.profile-screen h1{font-size:clamp(30px,5vw,48px);line-height:1.1;font-weight:500;letter-spacing:-.045em;margin-bottom:34px}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,150px));justify-content:center;gap:22px}
+.profile-tile{min-width:0;display:flex;flex-direction:column;align-items:center;gap:12px}
+.profile-choice{width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;color:#a3a3a3;transition:color var(--m-duration-control),transform var(--m-duration-control)}
+.profile-choice:hover{color:#f5f5f5;transform:translateY(-3px)}
+.profile-portrait{width:clamp(88px,11vw,118px);aspect-ratio:1;border-radius:18px;overflow:hidden;display:block;border:2px solid transparent;transition:border-color var(--m-duration-control),box-shadow var(--m-duration-control)}
+.profile-choice:hover .profile-portrait{border-color:#f5f5f5;box-shadow:0 10px 35px rgba(0,0,0,.28)}
+.profile-portrait svg{display:block;width:100%;height:100%}
+.profile-choice strong{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap}
+.profile-tile-actions{display:flex;gap:12px;align-items:center}
+.profile-tile-actions button{font-size:11px;color:#737373}
+.profile-tile-actions button:hover{color:#f5f5f5}
+.profile-add .profile-portrait{display:grid;place-items:center;border:1px solid #404040;background:#111}
+.profile-add .profile-portrait svg{width:30px;height:30px;color:#a3a3a3}
+.profile-screen__footer{display:flex;justify-content:center;gap:10px;margin-top:42px}
+.profile-screen__footer button{height:38px;padding:0 17px;border:1px solid #404040;border-radius:999px;color:#a3a3a3;font-size:12px;transition:border-color var(--m-duration-control),color var(--m-duration-control)}
+.profile-screen__footer button:hover{border-color:#a3a3a3;color:#f5f5f5}
+.profile-editor{width:min(430px,100%);margin:28px auto 0;padding:22px;border:1px solid #262626;background:#111;text-align:left}
+.profile-editor[hidden]{display:none}
+.profile-editor h2{font-size:18px;font-weight:500;margin-bottom:16px}
+.profile-editor label{display:grid;gap:7px;color:#a3a3a3;font-size:12px}
+.profile-editor input{height:40px;padding:0 12px;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:#f5f5f5}
+.profile-editor input:focus{border-color:#737373}
+.avatar-options{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.avatar-option{width:43px;height:43px;border-radius:10px;overflow:hidden;border:2px solid transparent;opacity:.72}
+.avatar-option[aria-pressed=true]{border-color:var(--profile-accent,#f5a524);opacity:1}
+.avatar-option svg{width:100%;height:100%;display:block}
+.profile-editor__actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.profile-editor__actions button{padding:8px 13px;border:1px solid #404040;border-radius:999px;color:#d4d4d4;font-size:12px}
+.profile-editor__actions button.primary{background:#f5f5f5;color:#0a0a0a;border-color:#f5f5f5}
+.profile-managing .profile-choice{cursor:default}
+.profile-managing .profile-choice:hover{transform:none;color:#a3a3a3}
+.profile-managing .profile-choice:hover .profile-portrait{border-color:#404040;box-shadow:none}
+.profile-screen .profile-error{min-height:16px;margin-top:10px;color:#fca5a5;font-size:12px}
+@media(max-width:600px){.profile-screen{padding:22px 16px}.profile-wordmark{margin-bottom:28px}.profile-screen h1{margin-bottom:26px}.profile-grid{grid-template-columns:repeat(3,minmax(80px,1fr));gap:18px 8px}.profile-portrait{width:min(21vw,100px);border-radius:14px}.profile-screen__footer{margin-top:30px}.profile-editor{padding:18px}}
 @media(max-width:900px){#brand{display:none}}
 @media(max-width:560px){.settings-grid,.profile-fields{grid-template-columns:1fr}.setting-control input[type=range]{width:48%}.st{height:min(760px,92dvh)}}
 @media(max-width:900px){:root{--gut:16px}
@@ -443,9 +486,28 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 </style>
 </head>
 <body>
+<section id="profile-screen" class="profile-screen" role="dialog" aria-modal="true" aria-labelledby="profile-heading">
+  <div class="profile-screen__inner">
+    <div class="profile-wordmark">reel</div>
+    <h1 id="profile-heading">Who's watching?</h1>
+    <div class="profile-grid" id="profile-grid"></div>
+    <div class="profile-editor" id="profile-editor" hidden>
+      <h2 id="profile-editor-title">Create profile</h2>
+      <label for="profile-editor-name">Profile name</label>
+      <input id="profile-editor-name" type="text" maxlength="24" placeholder="Enter a name" autocomplete="off">
+      <div class="field-label" style="margin-top:16px">Choose a profile picture</div>
+      <div class="avatar-options" id="avatar-options"></div>
+      <div class="profile-error" id="profile-error" aria-live="polite"></div>
+      <div class="profile-editor__actions"><button id="profile-cancel">Cancel</button><button id="profile-save" class="primary">Save profile</button></div>
+    </div>
+    <div class="profile-screen__footer">
+      <button id="manage-profiles">Manage profiles</button>
+    </div>
+  </div>
+</section>
 <div id="stage" aria-label="Interactive wall of movie posters"></div>
 <div class="fade left"></div><div class="fade top"></div><div class="fade bot"></div>
-<div id="brand" aria-label="Reel profile"><span class="brand-word">reel</span><span id="brand-user">for abhro</span><small id="brand-note"></small></div>
+<div id="brand" aria-label="Reel profile"><span class="brand-word">reel</span><span id="brand-user">for Guest</span><small id="brand-note"></small></div>
 <header class="bar">
   <div class="search" role="search">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -454,6 +516,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
     <kbd>Ctrl K</kbd>
   </div>
   <div class="tools">
+    <button class="profile-switch" id="profile-switch" aria-label="Switch profile"><span class="profile-avatar" id="nav-avatar"></span><span id="nav-profile-name">Guest</span></button>
     <button class="btn" id="fbtn">Filters</button>
     <div class="seg" role="group" aria-label="View">
       <button data-view="wall" aria-pressed="true">Wall</button><button data-view="list" aria-pressed="false">List</button>
@@ -556,6 +619,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
             <label>Viewing note<input id="profile-note" type="text" maxlength="42" placeholder="A small line about your taste"></label>
           </div>
           <p class="setting-desc">This stays on this device and appears in the corner of your Reel page.</p>
+          <div class="setting-actions"><button class="btn" id="switch-profile-settings">Switch profile</button><button class="btn" id="manage-profiles-settings">Manage profiles</button></div>
         </div>
         <div class="setting-block">
           <h4>Favorite genres</h4>
@@ -1006,7 +1070,7 @@ let systemReduce=matchMedia('(prefers-reduced-motion: reduce)').matches, reduce=
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const yr=m=>(m.release_date||'').slice(0,4), rate=m=>m.vote_average?m.vote_average.toFixed(1):'–';
 const SETTINGS_DEFAULTS={
-  profileName:'abhro',profileNote:'',favorites:[],theme:'dark',accent:'#f5a524',sort:'popularity.desc',
+  profileName:'Guest',profileNote:'',favorites:[],theme:'dark',accent:'#f5a524',sort:'popularity.desc',
   font:'geist',density:'comfortable',rows:3,posterSize:1,sensitivity:1,
   drift:true,driftSpeed:1,showMini:true,showChips:true,showHint:true,
   motion:'system',defaultView:'wall'
@@ -1027,10 +1091,67 @@ if(!['comfortable','compact'].includes(S.density))S.density='comfortable';
 if(!['system','full','reduced'].includes(S.motion))S.motion='system';
 if(!['wall','list'].includes(S.defaultView))S.defaultView='wall';
 S.view=S.defaultView;
+const emptyLibrary=()=>({list:[],hist:[],prog:{}});
+const copyLibrary=value=>({
+  list:Array.isArray(value?.list)?value.list:[],
+  hist:Array.isArray(value?.hist)?value.hist:[],
+  prog:value?.prog&&typeof value.prog==='object'?value.prog:{}
+});
+const PROFILE_STORE_KEY='mw-profiles';
+const AVATARS=[
+  {bg:'#344b60',skin:'#e7b58e',hair:'#352d35',shirt:'#8eacc4'},
+  {bg:'#69514d',skin:'#f1c7a5',hair:'#3a2927',shirt:'#d18b77'},
+  {bg:'#4d5a4b',skin:'#d59a75',hair:'#242b29',shirt:'#9aaf84'},
+  {bg:'#5c5070',skin:'#f0c8a8',hair:'#4a3247',shirt:'#b49ac9'},
+  {bg:'#625d42',skin:'#d9a27f',hair:'#302a25',shirt:'#c6b778'},
+  {bg:'#395d5a',skin:'#e9bc98',hair:'#2f2527',shirt:'#79a8a1'},
+  {bg:'#694c63',skin:'#b97958',hair:'#241d24',shirt:'#c08cab'},
+  {bg:'#4f5668',skin:'#edc8aa',hair:'#373945',shirt:'#9aa9c7'}
+];
+const avatarMarkup=index=>{
+  const a=AVATARS[Math.abs(Number(index)||0)%AVATARS.length];
+  const hair=index%3===0?'M22 39c0-19 12-29 27-29s27 10 27 29v9H22z':
+    index%3===1?'M21 42c0-20 12-32 28-32 17 0 29 12 29 32l-7 8H28z':
+    'M20 40c1-20 13-30 29-30s28 10 29 30l-9 5H28z';
+  return `<svg viewBox="0 0 100 100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="18" fill="${a.bg}"/><circle cx="50" cy="50" r="37" fill="rgba(255,255,255,.06)"/><path d="M13 102c3-22 17-32 37-32s34 10 37 32" fill="${a.shirt}"/><path d="${hair}" fill="${a.hair}"/><ellipse cx="50" cy="48" rx="22" ry="27" fill="${a.skin}"/><path d="${hair}" fill="${a.hair}"/><path d="M39 51h2m18 0h2" stroke="#30241f" stroke-width="2.5" stroke-linecap="round"/><path d="M44 63q6 5 12 0" fill="none" stroke="#8f5143" stroke-width="2" stroke-linecap="round"/><path d="M28 43q4-9 12-11m21 0q8 2 12 11" stroke="${a.hair}" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`;
+};
+let profiles=[],activeProfileId='guest',activeProfile=null;
+const persistProfiles=()=>{try{localStorage.setItem(PROFILE_STORE_KEY,JSON.stringify(profiles))}catch{}};
+const normalizeProfile=(p,i)=>({
+  id:String(p?.id||('profile-'+i)),
+  name:String(p?.name||'Guest').trim().slice(0,24)||'Guest',
+  avatar:Math.abs(Number(p?.avatar)||0)%AVATARS.length,
+  note:String(p?.note||'').slice(0,42),
+  favorites:Array.isArray(p?.favorites)?p.favorites.map(Number).filter(Number.isFinite):[],
+  lib:copyLibrary(p?.lib||p?.library)
+});
+try{
+  const stored=JSON.parse(localStorage.getItem(PROFILE_STORE_KEY)||'null');
+  if(Array.isArray(stored))profiles=stored.slice(0,8).map(normalizeProfile);
+}catch{}
+if(!profiles.length){
+  let oldLib=emptyLibrary(),oldSettings={};
+  try{oldLib=copyLibrary(JSON.parse(localStorage.getItem('mw-lib')||'{}'))}catch{}
+  try{oldSettings=JSON.parse(localStorage.getItem('mw-settings')||'{}')}catch{}
+  profiles=[{id:'guest',name:'Guest',avatar:0,note:'',favorites:Array.isArray(oldSettings.favorites)?oldSettings.favorites:[],lib:oldLib}];
+  persistProfiles();
+}
+try{activeProfileId=localStorage.getItem('mw-active-profile')||profiles[0].id}catch{activeProfileId=profiles[0].id}
+activeProfile=profiles.find(p=>p.id===activeProfileId)||profiles[0];
+activeProfileId=activeProfile.id;
+S.profileName=activeProfile.name;S.profileNote=activeProfile.note;S.favorites=[...activeProfile.favorites];
+const saveActiveProfileMetadata=()=>{
+  if(!activeProfile)return;
+  activeProfile.name=(S.profileName||'Guest').trim().slice(0,24)||'Guest';
+  activeProfile.note=(S.profileNote||'').slice(0,42);
+  activeProfile.favorites=[...new Set((S.favorites||[]).map(Number).filter(Number.isFinite))];
+  persistProfiles();
+};
 let genres=[],movies=[],reqId=0;
 const savePrefs=()=>{
-  const data={};Object.keys(SETTINGS_DEFAULTS).forEach(k=>data[k]=S[k]);
+  const data={};Object.keys(SETTINGS_DEFAULTS).filter(k=>!['profileName','profileNote','favorites'].includes(k)).forEach(k=>data[k]=S[k]);
   try{localStorage.setItem('mw-settings',JSON.stringify(data))}catch{}
+  saveActiveProfileMetadata();
 };
 const SORTS=[['personalized','For you'],['popularity.desc','Popular'],['vote_average.desc','Top rated'],['primary_release_date.desc','Newest']];
 try{S.sort=localStorage.getItem('mw-sort')||S.sort}catch{}
@@ -1077,8 +1198,8 @@ matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',()=>{if(
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change',e=>{systemReduce=e.matches;if(S.motion==='system')applyMotion()});
 
 /* ---------- Library: watchlist, history, progress ---------- */
-let lib={list:[],hist:[],prog:{}},cur=null;try{lib={...lib,...JSON.parse(localStorage.getItem('mw-lib')||'{}')}}catch{}
-const saveLib=()=>{try{localStorage.setItem('mw-lib',JSON.stringify(lib))}catch{}};
+let lib=copyLibrary(activeProfile.lib),cur=null;
+const saveLib=()=>{if(!activeProfile)return;activeProfile.lib=copyLibrary(lib);persistProfiles();};
 const snap=m=>({id:m.id,title:m.title,poster_path:m.poster_path,release_date:m.release_date,vote_average:m.vote_average});
 const inList=id=>lib.list.some(x=>x.id===id),chipTxt=m=>rate(m)+(inList(m.id)?' · Saved':'');
 const meta=id=>lib.list.find(x=>x.id==id)||lib.hist.find(x=>x.id==id)||lib.prog[id];
@@ -1111,7 +1232,8 @@ stg.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)re
 $('#clr-h').onclick=()=>{lib.hist=[];saveLib();renderLib()};
 $('#exp').onclick=()=>{
   const prefs={};Object.keys(SETTINGS_DEFAULTS).forEach(k=>prefs[k]=S[k]);
-  const backup={version:2,exportedAt:new Date().toISOString(),library:lib,settings:prefs};
+  saveActiveProfileMetadata();
+  const backup={version:3,exportedAt:new Date().toISOString(),profiles,activeProfileId,settings:prefs};
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
   a.download='reel-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
@@ -1119,13 +1241,25 @@ $('#imp-btn').onclick=()=>$('#imp').click();
 $('#imp').onchange=async e=>{
   const file=e.target.files?.[0];if(!file)return;
   try{
-    const data=JSON.parse(await file.text()),incoming=data.library||data;
-    if(Array.isArray(incoming.list))lib.list=incoming.list;
-    if(Array.isArray(incoming.hist))lib.hist=incoming.hist;
-    if(incoming.prog&&typeof incoming.prog==='object')lib.prog=incoming.prog;
+    const data=JSON.parse(await file.text());
+    if(Array.isArray(data.profiles)&&data.profiles.length){
+      profiles=data.profiles.slice(0,8).map(normalizeProfile);
+      activeProfile=profiles.find(p=>p.id===data.activeProfileId)||profiles[0];
+      activeProfileId=activeProfile.id;
+      lib=copyLibrary(activeProfile.lib);
+      try{localStorage.setItem('mw-active-profile',activeProfileId)}catch{}
+      persistProfiles();
+      S.profileName=activeProfile.name;S.profileNote=activeProfile.note;S.favorites=[...activeProfile.favorites];
+    }else{
+      const incoming=data.library||data;
+      if(Array.isArray(incoming.list))lib.list=incoming.list;
+      if(Array.isArray(incoming.hist))lib.hist=incoming.hist;
+      if(incoming.prog&&typeof incoming.prog==='object')lib.prog=incoming.prog;
+      if(data.settings?.favorites)S.favorites=data.settings.favorites;
+      activeProfile.lib=copyLibrary(lib);activeProfile.favorites=[...S.favorites];persistProfiles();
+    }
     if(data.settings&&typeof data.settings==='object'){
-      Object.keys(SETTINGS_DEFAULTS).forEach(k=>{if(data.settings[k]!==undefined)S[k]=data.settings[k]});
-      S.favorites=Array.isArray(S.favorites)?S.favorites.map(Number).filter(Number.isFinite):[];
+      Object.keys(SETTINGS_DEFAULTS).filter(k=>!['profileName','profileNote','favorites'].includes(k)).forEach(k=>{if(data.settings[k]!==undefined)S[k]=data.settings[k]});
       S.rows=Math.max(2,Math.min(5,Number(S.rows)||3));
       S.posterSize=Math.max(.75,Math.min(1.25,Number(S.posterSize)||1));
       S.sensitivity=Math.max(.5,Math.min(2,Number(S.sensitivity)||1));
@@ -1134,7 +1268,7 @@ $('#imp').onchange=async e=>{
       setAccent(S.accent||PRE[0]);setTheme(S.theme);setFont(S.font);setDensity(S.density);applyMotion();
       updateProfile();renderFavoriteGenres();wall.configure();syncPreferenceControls();syncView();
     }
-    saveLib();savePrefs();renderLib();load();
+    saveLib();savePrefs();renderLib();syncWl();renderProfileChooser();load();
   }catch{$('#p-prog').innerHTML='<p class="empty">This backup could not be read. Check that it is a valid Reel JSON backup.</p>'}
   e.target.value='';
 };
@@ -1404,7 +1538,7 @@ syncPreferenceControls();
 
 /* ---------- Start ---------- */
 drawFilters();renderLib();load();
-api('/genre/movie/list').then(r=>{genres=r.genres||[];drawFilters();renderList()}).catch(()=>{});
+api('/genre/movie/list').then(r=>{genres=r.genres||[];drawFilters();renderList();renderFavoriteGenres()}).catch(()=>{});
 </script>
 </body>
 </html>
