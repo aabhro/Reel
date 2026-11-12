@@ -1,3 +1,12 @@
+export const config = {
+  path: [
+    '/movie/:id',
+    '/movie/:id/',
+    '/tv/:id',
+    '/tv/:id/'
+  ]
+};
+
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const IMAGE_BASE = 'https://image.tmdb.org/t/p/';
 function escapeHtml(value = '') {
@@ -87,8 +96,9 @@ function renderSharePage({ origin, type, id, item }) {
 
 export default async (request) => {
   const url = new URL(request.url);
-  const type = url.searchParams.get('type');
-  const id = String(url.searchParams.get('id') || '');
+  const routeMatch = url.pathname.match(/^\/(movie|tv)\/(\d+)\/?$/);
+  const type = routeMatch?.[1] || url.searchParams.get('type');
+  const id = String(routeMatch?.[2] || url.searchParams.get('id') || '');
 
   if (!['movie', 'tv'].includes(type) || !/^\d+$/.test(id)) {
     return new Response('Invalid Reel share link.', {
