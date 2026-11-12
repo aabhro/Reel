@@ -1398,7 +1398,7 @@ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{S.view=b.data
 const dlg=$('#dlg');
 let openId=0;
 async function openDetail(id,trigger,fallback,typeOverride){
-  const type=typeOverride||mediaType(fallback||{media_type:S.mediaType}),m=movies.find(x=>x.id===id)||fallback||{};openId=type+':'+id;cur=snap({...m,id,media_type:type});syncWl();
+  const type=typeOverride||mediaType(fallback||{media_type:S.mediaType}),m=movies.find(x=>x.id===id&&mediaType(x)===type)||fallback||{};openId=type+':'+id;cur=snap({...m,id,media_type:type});syncWl();
   $('#d-title').textContent=mediaTitle(m);$('#d-over').textContent=m.overview||'No description available.';$('#d-tag').textContent='';
   $('#d-img').src=m.poster_path?IMG+'w342'+m.poster_path:'';
   $('#d-hero').style.backgroundImage=m.backdrop_path?`url(${IMG}w780${m.backdrop_path})`:'';
