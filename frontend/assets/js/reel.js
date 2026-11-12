@@ -55,14 +55,31 @@ const copyLibrary=value=>{
 };
 const PROFILE_STORE_KEY='mw-profiles';
 let cloudUser=null,cloudReady=false,cloudHydrating=false,cloudHydratedUserId=null,cloudSaveTimer=0;
+function safeRemoteImage(value){
+  if(typeof value!=='string'||!value.trim())return null;
+  try{const url=new URL(value);return url.protocol==='https:'?url.href:null}catch{return null}
+}
 function cloudAccountRecord(user){
   const meta=user?.user_metadata||{};
+  const identities=Array.isArray(user?.identities)?user.identities:[];
+  const provider=user?.app_metadata?.provider||identities[0]?.provider||'oauth';
+  const identity=identities.find(item=>item.provider===provider)||identities[0];
+  const identityData=identity?.identity_data||{};
+  const candidates=[meta.avatar_url,meta.picture,meta.profile_image_url,identityData.avatar_url,identityData.picture];
+  let avatar_url=candidates.map(safeRemoteImage).find(Boolean)||null;
+  if(!avatar_url&&provider==='discord'){
+    const discordId=meta.provider_id||identityData.sub||identityData.id||identity?.provider_id;
+    const avatarHash=meta.avatar||identityData.avatar;
+    if(discordId&&avatarHash&&/^[a-zA-Z0-9_]+$/.test(String(avatarHash))){
+      avatar_url='https://cdn.discordapp.com/avatars/'+encodeURIComponent(discordId)+'/'+encodeURIComponent(avatarHash)+'.png?size=128';
+    }
+  }
   return {
     id:user?.id||null,
     email:user?.email||null,
-    display_name:meta.full_name||meta.name||meta.user_name||user?.email||'Reel user',
-    avatar_url:meta.avatar_url||meta.picture||null,
-    provider:user?.app_metadata?.provider||'oauth'
+    display_name:meta.full_name||meta.name||meta.preferred_username||meta.user_name||user?.email||'Reel user',
+    avatar_url,
+    provider
   };
 }
 function queueCloudSave(){
@@ -106,6 +123,14 @@ const avatarMarkup=index=>{
     'M20 40c1-20 13-30 29-30s28 10 29 30l-9 5H28z';
   return `<svg viewBox="0 0 100 100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="18" fill="${a.bg}"/><circle cx="50" cy="50" r="37" fill="rgba(255,255,255,.06)"/><path d="M13 102c3-22 17-32 37-32s34 10 37 32" fill="${a.shirt}"/><path d="${hair}" fill="${a.hair}"/><ellipse cx="50" cy="48" rx="22" ry="27" fill="${a.skin}"/><path d="${hair}" fill="${a.hair}"/><path d="M39 51h2m18 0h2" stroke="#30241f" stroke-width="2.5" stroke-linecap="round"/><path d="M44 63q6 5 12 0" fill="none" stroke="#8f5143" stroke-width="2" stroke-linecap="round"/><path d="M28 43q4-9 12-11m21 0q8 2 12 11" stroke="${a.hair}" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`;
 };
+const safeProfileImage=value=>{
+  const source=String(value||'');
+  return source.length<=700000&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(source)?source:null;
+};
+const profileAvatarMarkup=profile=>{
+  const source=safeProfileImage(profile?.avatarUrl);
+  return source?`<img src="${esc(source)}" alt="" draggable="false">`:avatarMarkup(profile?.avatar||0);
+};
 let profiles=[],activeProfileId='guest',activeProfile=null;
 const persistProfiles=()=>{
   try{localStorage.setItem(PROFILE_STORE_KEY,JSON.stringify(profiles))}catch{}
@@ -115,6 +140,7 @@ const normalizeProfile=(p,i)=>({
   id:String(p?.id||('profile-'+i)),
   name:String(p?.name||'Guest').trim().slice(0,24)||'Guest',
   avatar:Math.abs(Number(p?.avatar)||0)%AVATARS.length,
+  avatarUrl:safeProfileImage(p?.avatarUrl),
   note:String(p?.note||'').slice(0,42),
   favorites:Array.isArray(p?.favorites)?p.favorites.map(Number).filter(Number.isFinite):[],
   lib:copyLibrary(p?.lib||p?.library)
@@ -176,7 +202,8 @@ function updateProfile(){
   $('#brand-user').textContent='for '+name;
   $('#brand-note').textContent=S.profileNote.trim();
   $('#nav-profile-name').textContent=name;
-  $('#nav-avatar').innerHTML=avatarMarkup(activeProfile?.avatar||0);
+  const accountImage=cloudUser?safeRemoteImage(cloudAccountRecord(cloudUser).avatar_url):null;
+  $('#nav-avatar').innerHTML=accountImage?`<img src="${esc(accountImage)}" alt="" referrerpolicy="no-referrer">`:profileAvatarMarkup(activeProfile);
 }
 function renderFavoriteGenres(){
   const host=$('#fav-genres');if(!host)return;
@@ -540,12 +567,39 @@ const wall=(()=>{
 })();
 
 /* ---------- Personalization and settings controls ---------- */
-let managingProfiles=false,editingProfileId=null,selectedAvatar=0;
+let managingProfiles=false,editingProfileId=null,selectedAvatar=0,selectedAvatarUrl='';
+function renderAvatarPreview(){
+  const host=$('#profile-avatar-preview');
+  if(host)host.innerHTML=selectedAvatarUrl?`<img src="${esc(selectedAvatarUrl)}" alt="Custom profile picture">`:avatarMarkup(selectedAvatar);
+}
+async function optimizeProfileImage(file){
+  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Choose a JPG, PNG or WebP image.');
+  if(file.size>8*1024*1024)throw new Error('Choose an image smaller than 8 MB.');
+  const objectUrl=URL.createObjectURL(file);
+  try{
+    const image=await new Promise((resolve,reject)=>{
+      const img=new Image();
+      img.onload=()=>resolve(img);
+      img.onerror=()=>reject(new Error('This image could not be opened.'));
+      img.src=objectUrl;
+    });
+    if(!image.naturalWidth||!image.naturalHeight||image.naturalWidth*image.naturalHeight>40000000)throw new Error('This image is too large to process.');
+    const side=Math.min(image.naturalWidth,image.naturalHeight);
+    const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
+    const context=canvas.getContext('2d');
+    if(!context)throw new Error('Image processing is unavailable in this browser.');
+    context.drawImage(image,(image.naturalWidth-side)/2,(image.naturalHeight-side)/2,side,side,0,0,512,512);
+    let result=canvas.toDataURL('image/webp',.82);
+    if(result.length>650000)result=canvas.toDataURL('image/jpeg',.76);
+    if(result.length>700000)throw new Error('This image could not be compressed enough. Try another image.');
+    return result;
+  }finally{URL.revokeObjectURL(objectUrl)}
+}
 function renderProfileChooser(){
   const host=$('#profile-grid');if(!host)return;
   const tiles=profiles.map((p,i)=>`<div class="profile-tile" style="--profile-index:${i}">
     <button class="profile-choice" data-profile-select="${esc(p.id)}" aria-current="${p.id===activeProfileId}" aria-label="Continue as ${esc(p.name)}">
-      <span class="profile-portrait">${avatarMarkup(p.avatar)}</span><strong>${esc(p.name)}</strong>
+      <span class="profile-portrait">${profileAvatarMarkup(p)}</span><strong>${esc(p.name)}</strong>
     </button>
     ${managingProfiles?`<div class="profile-tile-actions"><button data-profile-edit="${esc(p.id)}">Edit</button>${profiles.length>1?`<button data-profile-delete="${esc(p.id)}">Remove</button>`:''}</div>`:''}
   </div>`).join('');
@@ -563,10 +617,13 @@ function openProfileEditor(id=null){
   editingProfileId=id;
   const p=id?profiles.find(x=>x.id===id):null;
   selectedAvatar=p?.avatar??(profiles.length%AVATARS.length);
+  selectedAvatarUrl=safeProfileImage(p?.avatarUrl)||'';
   $('#profile-editor-title').textContent=p?'Edit profile':'Create profile';
   $('#profile-editor-name').value=p?.name||'';
   $('#profile-error').textContent='';
-  $('#avatar-options').innerHTML=AVATARS.map((a,i)=>`<button class="avatar-option" data-avatar-choice="${i}" aria-label="Avatar ${i+1}" aria-pressed="${i===selectedAvatar}">${avatarMarkup(i)}</button>`).join('');
+  $('#profile-avatar-file').value='';
+  $('#avatar-options').innerHTML=AVATARS.map((a,i)=>`<button class="avatar-option" data-avatar-choice="${i}" aria-label="Avatar ${i+1}" aria-pressed="${!selectedAvatarUrl&&i===selectedAvatar}">${avatarMarkup(i)}</button>`).join('');
+  renderAvatarPreview();
   $('#profile-grid').hidden=true;
   $('#profile-editor').hidden=false;
   $('#manage-profiles').hidden=true;
@@ -574,6 +631,7 @@ function openProfileEditor(id=null){
 }
 function closeProfileEditor(){
   editingProfileId=null;
+  selectedAvatarUrl='';
   $('#profile-editor').hidden=true;
   $('#profile-grid').hidden=false;
   $('#manage-profiles').hidden=false;
@@ -637,8 +695,24 @@ $('#profile-grid').addEventListener('click',e=>{
 });
 $('#avatar-options').addEventListener('click',e=>{
   const b=e.target.closest('[data-avatar-choice]');if(!b)return;
-  selectedAvatar=+b.dataset.avatarChoice;
+  selectedAvatar=+b.dataset.avatarChoice;selectedAvatarUrl='';
   $('#avatar-options').querySelectorAll('[data-avatar-choice]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  renderAvatarPreview();
+});
+$('#profile-avatar-file').addEventListener('change',async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  $('#profile-error').textContent='Preparing your picture…';
+  try{
+    selectedAvatarUrl=await optimizeProfileImage(file);
+    $('#avatar-options').querySelectorAll('[data-avatar-choice]').forEach(x=>x.setAttribute('aria-pressed','false'));
+    renderAvatarPreview();$('#profile-error').textContent='';
+  }catch(error){$('#profile-error').textContent=error.message||'Could not use this image.'}
+  e.target.value='';
+});
+$('#profile-avatar-remove').addEventListener('click',()=>{
+  selectedAvatarUrl='';
+  renderAvatarPreview();
+  $('#profile-error').textContent='';
 });
 $('#manage-profiles').onclick=()=>{managingProfiles=!managingProfiles;renderProfileChooser()};
 $('#profile-cancel').onclick=closeProfileEditor;
@@ -647,11 +721,11 @@ $('#profile-save').onclick=()=>{
   if(!name){$('#profile-error').textContent='Enter a profile name to continue.';$('#profile-editor-name').focus();return}
   if(editingProfileId){
     const p=profiles.find(x=>x.id===editingProfileId);if(!p)return;
-    p.name=name.slice(0,24);p.avatar=selectedAvatar;
+    p.name=name.slice(0,24);p.avatar=selectedAvatar;p.avatarUrl=selectedAvatarUrl;
     if(p.id===activeProfileId){S.profileName=p.name;updateProfile();saveActiveProfileMetadata();syncPreferenceControls()}
   }else{
     if(profiles.length>=8){$('#profile-error').textContent='You can create up to 8 profiles.';return}
-    const p={id:'profile-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),name:name.slice(0,24),avatar:selectedAvatar,note:'',favorites:[],lib:emptyLibrary()};
+    const p={id:'profile-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),name:name.slice(0,24),avatar:selectedAvatar,avatarUrl:selectedAvatarUrl,note:'',favorites:[],lib:emptyLibrary()};
     profiles.push(p);persistProfiles();managingProfiles=false;activateProfile(p.id);closeProfileEditor();renderProfileChooser();return;
   }
   persistProfiles();closeProfileEditor();renderProfileChooser();
@@ -706,19 +780,28 @@ $('#reset-prefs').onclick=()=>{
 /* ---------- Account authentication and cloud storage ---------- */
 function syncAuthScreen(message=''){
   const status=$('#account-status'),actions=$('#auth-actions'),signOut=$('#sign-out');
+  const identity=$('#account-identity');
   if(!status||!actions||!signOut)return;
   document.querySelectorAll('[data-auth-provider]').forEach(b=>{b.disabled=!supabase});
   if(!supabase){
     status.textContent=message||'Guest mode. Add Supabase settings in Netlify to enable Google and Discord sign-in.';
-    actions.hidden=false;signOut.hidden=true;return;
+    actions.hidden=false;signOut.hidden=true;if(identity)identity.hidden=true;return;
   }
   if(cloudUser){
     const account=cloudAccountRecord(cloudUser);
-    status.textContent=message||('Signed in as '+(account.email||account.display_name)+'. Profiles, watchlists and progress sync to your account.');
+    const providerName=account.provider==='google'?'Google':account.provider==='discord'?'Discord':'Connected account';
+    status.textContent=message||'Your profiles, watchlists and progress are syncing to this account.';
+    if(identity){
+      identity.hidden=false;
+      $('#account-avatar').innerHTML=account.avatar_url?`<img src="${esc(account.avatar_url)}" alt="" referrerpolicy="no-referrer">`:avatarMarkup(account.provider==='discord'?5:2);
+      $('#account-display-name').textContent=account.display_name;
+      $('#account-email').textContent=account.email||'Signed in';
+      $('#account-provider').textContent=providerName;
+    }
     actions.hidden=true;signOut.hidden=false;
   }else{
     status.textContent=message||'Guest mode. Sign in to sync profiles and viewing data across devices.';
-    actions.hidden=false;signOut.hidden=true;
+    actions.hidden=false;signOut.hidden=true;if(identity)identity.hidden=true;
   }
 }
 async function signInWithProvider(provider){
