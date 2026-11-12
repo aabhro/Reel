@@ -1,5 +1,9 @@
 # Reel
 
+<p align="center">
+  <img width="1366" height="653" alt="Reel movie and TV discovery interface" src="https://github.com/user-attachments/assets/fe42789d-9ce9-4051-874c-cf039351c159" />
+</p>
+
 A canvas-driven movie and TV discovery app with multi-profile libraries, per-episode progress, social sign-in and cloud sync.
 
 Reel is open source under the MIT License.
@@ -16,6 +20,7 @@ Reel is open source under the MIT License.
 - Google and Discord sign-in through Supabase Auth
 - Cloud-saved account details, profiles, libraries and preferences
 - Guest mode remains available without an account
+- Shareable movie and TV routes with server-rendered Open Graph and Twitter previews
 - Netlify Functions proxy TMDB requests so its API key stays server-side
 - Supabase Row Level Security isolates each user's saved data
 
@@ -31,6 +36,7 @@ Reel is open source under the MIT License.
       functions/
         config.mjs
         tmdb.mjs
+        share.mjs
     supabase/
       schema.sql
     netlify.toml
@@ -38,6 +44,8 @@ Reel is open source under the MIT License.
     reel.html
 
 The frontend is static HTML, CSS and JavaScript. The backend is made of Netlify Functions. Supabase Auth handles OAuth and Supabase Postgres stores account state.
+
+Movie links use `/movie/:id/` and TV links use `/tv/:id/`. The `share.mjs` function looks up the TMDB title and responds with server-rendered Open Graph and Twitter Card tags, including artwork, description and a "Watch on Reel" attribution. Browsers then load the normal Reel interface at the same URL.
 
 The browser receives only the Supabase URL and public publishable/anon key. It never receives a service_role key. The database's RLS policies require auth.uid() to match the row's user_id for every operation.
 
