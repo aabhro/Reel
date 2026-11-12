@@ -542,24 +542,28 @@ const wall=(()=>{
   new ResizeObserver(resize).observe(stage);resize();
   function set(list){
     items.forEach(i=>i.dying=true);queue.length=0;hover=null;focusIt=null;caption(null);
-    const n=list.length,cols=Math.max(Math.ceil(n/rows),8),R=Math.max(6,cols*(PW+.14)/TAU),step=(PW+.14)/R,arc=cols*step,now=performance.now()/1000;
+    const searchReveal=!!S.q.trim()&&S.view==='wall';
+    const usedCols=Math.max(Math.ceil(list.length/rows),1);
+    const cols=searchReveal?usedCols+(usedCols%2===0?1:0):Math.max(usedCols,8);
+    const R=Math.max(6,cols*(PW+.14)/TAU),step=(PW+.14)/R,arc=cols*step,now=performance.now()/1000;
     loop=arc>=TAU-.05;wallR=R;lim=loop?Infinity:Math.max(0,arc/2-.9);yaw=0;vel=0;
-    const searchReveal=!!S.q.trim()&&S.view==='wall',centerRank=new Map();
-    if(searchReveal){
-      const order=list.map((m,i)=>{
-        const col=Math.floor(i/rows),row=i%rows;
-        const angle=(col+(row%2)*.5)*step-(loop?0:arc/2);
-        const vertical=Math.abs(row-(rows-1)/2);
-        return{i,distance:Math.abs(wrap(angle))+vertical*step*.35};
-      }).sort((a,b)=>a.distance-b.distance||a.i-b.i);
-      order.forEach((entry,rank)=>centerRank.set(entry.i,rank));
+    const centerCol=Math.floor(cols/2),centerRow=Math.floor((rows-1)/2);
+    const searchColumns=[centerCol],searchRows=[centerRow];
+    for(let offset=1;searchColumns.length<cols||searchRows.length<rows;offset++){
+      if(centerCol-offset>=0&&searchColumns.length<cols)searchColumns.push(centerCol-offset);
+      if(centerCol+offset<cols&&searchColumns.length<cols)searchColumns.push(centerCol+offset);
+      if(centerRow-offset>=0&&searchRows.length<rows)searchRows.push(centerRow-offset);
+      if(centerRow+offset<rows&&searchRows.length<rows)searchRows.push(centerRow+offset);
     }
-    list.forEach((m,i)=>{const col=Math.floor(i/rows),row=i%rows,a=(col+(row%2)*.5)*step-(loop?0:arc/2),y=(row-(rows-1)/2)*(PH+.14);
+    list.forEach((m,i)=>{
+      const col=searchReveal?searchColumns[Math.floor(i/rows)]:Math.floor(i/rows);
+      const row=searchReveal?searchRows[i%rows]:i%rows;
+      const a=searchReveal?(col-centerCol)*step:(col+(row%2)*.5)*step-(loop?0:arc/2);
+      const y=(row-(rows-1)/2)*(PH+.14);
       const holder=new THREE.Object3D();holder.position.set(Math.sin(a)*R,y,-Math.cos(a)*R);holder.lookAt(0,0,0); /* bowl: outer rows lean toward you */
       const mat=new THREE.MeshBasicMaterial({color:0x171717,transparent:true,opacity:0,toneMapped:false});
       const mesh=new THREE.Mesh(geo,mat);mesh.position.z=reduce?0:-3;holder.add(mesh);group.add(holder);
-      const revealOrder=searchReveal?(centerRank.get(i)??i):i;
-      const it={holder,mesh,mat,m,a,y,dying:false,start:reduce?0:now+.15+Math.min(revealOrder,60)*.012};mesh.userData.it=it;items.push(it);
+      const it={holder,mesh,mat,m,a,y,dying:false,start:reduce?0:now+.15+Math.min(i,60)*.012};mesh.userData.it=it;items.push(it);
       it.chip=chipEl(m);queue.push(it);
     });
     queue.sort((x,y)=>Math.abs(wrap(x.a))-Math.abs(wrap(y.a)));pump();
