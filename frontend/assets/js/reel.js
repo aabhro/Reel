@@ -127,9 +127,10 @@ const safeProfileImage=value=>{
   const source=String(value||'');
   return source.length<=700000&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(source)?source:null;
 };
+const profileImageSource=profile=>safeProfileImage(profile?.avatarUrl)||safeRemoteImage(profile?.avatarUrl);
 const profileAvatarMarkup=profile=>{
-  const source=safeProfileImage(profile?.avatarUrl);
-  return source?`<img src="${esc(source)}" alt="" draggable="false">`:avatarMarkup(profile?.avatar||0);
+  const source=profileImageSource(profile);
+  return source?`<img src="${esc(source)}" alt="" draggable="false" referrerpolicy="no-referrer">`:avatarMarkup(profile?.avatar||0);
 };
 let profiles=[],activeProfileId='guest',activeProfile=null;
 const persistProfiles=()=>{
@@ -140,7 +141,8 @@ const normalizeProfile=(p,i)=>({
   id:String(p?.id||('profile-'+i)),
   name:String(p?.name||'Guest').trim().slice(0,24)||'Guest',
   avatar:Math.abs(Number(p?.avatar)||0)%AVATARS.length,
-  avatarUrl:safeProfileImage(p?.avatarUrl),
+  avatarUrl:safeProfileImage(p?.avatarUrl)||safeRemoteImage(p?.avatarUrl),
+  avatarFromProvider:!!p?.avatarFromProvider,
   note:String(p?.note||'').slice(0,42),
   favorites:Array.isArray(p?.favorites)?p.favorites.map(Number).filter(Number.isFinite):[],
   lib:copyLibrary(p?.lib||p?.library)
@@ -203,7 +205,8 @@ function updateProfile(){
   $('#brand-note').textContent=S.profileNote.trim();
   $('#nav-profile-name').textContent=name;
   const accountImage=cloudUser?safeRemoteImage(cloudAccountRecord(cloudUser).avatar_url):null;
-  $('#nav-avatar').innerHTML=accountImage?`<img src="${esc(accountImage)}" alt="" referrerpolicy="no-referrer">`:profileAvatarMarkup(activeProfile);
+  const profileImage=profileImageSource(activeProfile)||(activeProfile?.avatarFromProvider?accountImage:null);
+  $('#nav-avatar').innerHTML=profileImage?`<img src="${esc(profileImage)}" alt="" referrerpolicy="no-referrer">`:avatarMarkup(activeProfile?.avatar||0);
 }
 function renderFavoriteGenres(){
   const host=$('#fav-genres');if(!host)return;
@@ -721,11 +724,11 @@ $('#profile-save').onclick=()=>{
   if(!name){$('#profile-error').textContent='Enter a profile name to continue.';$('#profile-editor-name').focus();return}
   if(editingProfileId){
     const p=profiles.find(x=>x.id===editingProfileId);if(!p)return;
-    p.name=name.slice(0,24);p.avatar=selectedAvatar;p.avatarUrl=selectedAvatarUrl;
+    p.name=name.slice(0,24);p.avatar=selectedAvatar;p.avatarUrl=selectedAvatarUrl;p.avatarFromProvider=false;
     if(p.id===activeProfileId){S.profileName=p.name;updateProfile();saveActiveProfileMetadata();syncPreferenceControls()}
   }else{
     if(profiles.length>=8){$('#profile-error').textContent='You can create up to 8 profiles.';return}
-    const p={id:'profile-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),name:name.slice(0,24),avatar:selectedAvatar,avatarUrl:selectedAvatarUrl,note:'',favorites:[],lib:emptyLibrary()};
+    const p={id:'profile-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),name:name.slice(0,24),avatar:selectedAvatar,avatarUrl:selectedAvatarUrl,avatarFromProvider:false,note:'',favorites:[],lib:emptyLibrary()};
     profiles.push(p);persistProfiles();managingProfiles=false;activateProfile(p.id);closeProfileEditor();renderProfileChooser();return;
   }
   persistProfiles();closeProfileEditor();renderProfileChooser();
@@ -781,28 +784,46 @@ $('#reset-prefs').onclick=()=>{
 function syncAuthScreen(message=''){
   const status=$('#account-status'),actions=$('#auth-actions'),signOut=$('#sign-out');
   const identity=$('#account-identity');
+  const summaryIcon=$('#account-summary-icon'),summaryAvatar=$('#account-summary-avatar');
+  const description=$('#account-description');
   if(!status||!actions||!signOut)return;
   document.querySelectorAll('[data-auth-provider]').forEach(b=>{b.disabled=!supabase});
   if(!supabase){
-    status.textContent=message||'Guest mode. Add Supabase settings in Netlify to enable Google and Discord sign-in.';
-    actions.hidden=false;signOut.hidden=true;if(identity)identity.hidden=true;return;
-  }
-  if(cloudUser){
+    $('#account-summary-title').textContent='Reel account';
+    $('#account-summary-subtitle').textContent='Sign-in is not configured';
+    summaryIcon.hidden=false;summaryIcon.innerHTML='<i data-lucide="cloud-off" aria-hidden="true"></i>';
+    summaryAvatar.hidden=true;description.hidden=false;
+    description.textContent='Connect Supabase in Netlify to enable account sync.';
+    status.textContent=message||'Guest mode is available on this device.';
+    actions.hidden=false;signOut.hidden=true;if(identity)identity.hidden=true;
+  }else if(cloudUser){
     const account=cloudAccountRecord(cloudUser);
     const providerName=account.provider==='google'?'Google':account.provider==='discord'?'Discord':'Connected account';
-    status.textContent=message||'Your profiles, watchlists and progress are syncing to this account.';
+    const image=safeRemoteImage(account.avatar_url);
+    $('#account-summary-title').textContent=account.display_name;
+    $('#account-summary-subtitle').textContent='Account connected';
+    summaryIcon.hidden=true;summaryAvatar.hidden=false;
+    summaryAvatar.innerHTML=image?`<img src="${esc(image)}" alt="" referrerpolicy="no-referrer">`:avatarMarkup(account.provider==='discord'?5:2);
+    description.hidden=true;
     if(identity){
       identity.hidden=false;
-      $('#account-avatar').innerHTML=account.avatar_url?`<img src="${esc(account.avatar_url)}" alt="" referrerpolicy="no-referrer">`:avatarMarkup(account.provider==='discord'?5:2);
+      $('#account-avatar').innerHTML=image?`<img src="${esc(image)}" alt="" referrerpolicy="no-referrer">`:avatarMarkup(account.provider==='discord'?5:2);
       $('#account-display-name').textContent=account.display_name;
       $('#account-email').textContent=account.email||'Signed in';
       $('#account-provider').textContent=providerName;
     }
+    status.textContent=message||'Your library is synced with this account.';
     actions.hidden=true;signOut.hidden=false;
   }else{
-    status.textContent=message||'Guest mode. Sign in to sync profiles and viewing data across devices.';
+    $('#account-summary-title').textContent='Reel account';
+    $('#account-summary-subtitle').textContent='Sign in to sync your library';
+    summaryIcon.hidden=false;summaryIcon.innerHTML='<i data-lucide="cloud" aria-hidden="true"></i>';
+    summaryAvatar.hidden=true;description.hidden=false;
+    description.textContent='Save your profiles, watchlists and viewing progress to your account.';
+    status.textContent=message||'Guest mode. Your library stays on this device until you sign in.';
     actions.hidden=false;signOut.hidden=true;if(identity)identity.hidden=true;
   }
+  if(window.lucide)window.lucide.createIcons();
 }
 async function signInWithProvider(provider){
   if(!supabase){syncAuthScreen('Sign-in is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY in Netlify.');return}
@@ -868,10 +889,31 @@ async function handleAuthSession(session){
       /* First sign-in imports this browser's existing Guest profiles and library. */
       activeProfile.lib=copyLibrary(lib);
     }
+    const accountProfile=profiles.find(p=>p.id==='guest')||
+      (profiles.length===1&&profiles[0].name.trim().toLowerCase()==='guest'?profiles[0]:null);
+    let accountProfileChanged=false;
+    if(accountProfile){
+      const account=cloudAccountRecord(user);
+      if(accountProfile.name==='Guest'&&account.display_name){
+        accountProfile.name=account.display_name.slice(0,24);
+        accountProfileChanged=true;
+      }
+      if(!profileImageSource(accountProfile)&&account.avatar_url){
+        accountProfile.avatarUrl=account.avatar_url;
+        accountProfile.avatarFromProvider=true;
+        accountProfileChanged=true;
+      }
+      if(activeProfileId===accountProfile.id){
+        activeProfile=accountProfile;
+        S.profileName=accountProfile.name;
+        S.profileNote=accountProfile.note;
+        S.favorites=[...accountProfile.favorites];
+      }
+    }
     cloudHydratedUserId=user.id;
     cloudHydrating=false;
     cloudReady=true;
-    if(!data?.state)await pushCloudState();
+    if(!data?.state||accountProfileChanged)await pushCloudState();
     updateProfile();renderProfileChooser();syncPreferenceControls();renderLib();syncWl();
     syncMediaTypeControls();fetchGenres();wall.refresh();load();
     syncAuthScreen();
