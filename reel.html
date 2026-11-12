@@ -1504,7 +1504,7 @@ function renderProfileChooser(){
     </button>
     ${managingProfiles?`<div class="profile-tile-actions"><button data-profile-edit="${esc(p.id)}">Edit</button>${profiles.length>1?`<button data-profile-delete="${esc(p.id)}">Remove</button>`:''}</div>`:''}
   </div>`).join('');
-  const add=managingProfiles&&profiles.length<8?`<div class="profile-tile">
+  const add=profiles.length<8?`<div class="profile-tile">
     <button class="profile-choice profile-add" id="add-profile">
       <span class="profile-portrait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><strong>Add profile</strong>
     </button>
