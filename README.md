@@ -47,7 +47,11 @@ The browser receives only the Supabase URL and public publishable/anon key. It n
 2. The included netlify.toml sets frontend as the publish directory and netlify/functions as the Functions directory. No build command is required.
 3. Create a Supabase project.
 4. Open Supabase SQL Editor and run all of supabase/schema.sql.
-5. In Supabase Authentication → URL Configuration, set the Site URL to your deployed Netlify URL. Add production and local development URLs to the allowed Redirect URLs. For deploy previews, add a wildcard matching your Netlify team and site preview host.
+5. In Supabase Authentication → URL Configuration, set the Site URL to your deployed Netlify URL. Add these patterns to the allowed Redirect URLs, replacing the example host with your own:
+
+- https://your-site.netlify.app/**
+- http://localhost:8888/**
+- https://**--your-netlify-team.netlify.app/** for deploy previews.
 6. Enable Google and Discord under Supabase Authentication → Sign In / Providers. Follow the provider steps below.
 7. Add the environment variables below in Netlify project settings. Make sure they are available to Functions.
 8. Trigger a new Netlify deploy after adding or changing environment variables.
@@ -61,6 +65,8 @@ The browser receives only the Supabase URL and public publishable/anon key. It n
 | SUPABASE_ANON_KEY | Browser-safe publishable/anon key |
 
 The Supabase anon/publishable key is designed for browser use. It is safe only when the database is protected by the included RLS policies. Never place a service_role key in frontend code or public Netlify configuration.
+
+**Rotate the old TMDB key before deployment.** The earlier single-file version committed a TMDB key directly into source code. Git retains previous commits, so removing the key from the latest version does not make the old key private. Revoke or rotate it in TMDB, then put the new key only in Netlify's TMDB_API_KEY environment variable.
 
 OAuth client IDs and secrets belong in Supabase provider settings, not in this repository.
 
