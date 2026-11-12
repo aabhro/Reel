@@ -1502,7 +1502,7 @@ function renderProfileChooser(){
     <button class="profile-choice" data-profile-select="${esc(p.id)}" aria-label="Continue as ${esc(p.name)}">
       <span class="profile-portrait">${avatarMarkup(p.avatar)}</span><strong>${esc(p.name)}</strong>
     </button>
-    ${managingProfiles?`<div class="profile-tile-actions"><button data-profile-edit="${esc(p.id)}">Edit</button><button data-profile-delete="${esc(p.id)}">Remove</button></div>`:''}
+    ${managingProfiles?`<div class="profile-tile-actions"><button data-profile-edit="${esc(p.id)}">Edit</button>${profiles.length>1?`<button data-profile-delete="${esc(p.id)}">Remove</button>`:''}</div>`:''}
   </div>`).join('');
   const add=managingProfiles&&profiles.length<8?`<div class="profile-tile">
     <button class="profile-choice profile-add" id="add-profile">
@@ -1650,7 +1650,7 @@ $('#reset-prefs').onclick=()=>{
 syncPreferenceControls();
 
 /* ---------- Start ---------- */
-drawFilters();renderLib();load();
+renderProfileChooser();drawFilters();renderLib();load();
 api('/genre/movie/list').then(r=>{genres=r.genres||[];drawFilters();renderList();renderFavoriteGenres()}).catch(()=>{});
 </script>
 </body>
