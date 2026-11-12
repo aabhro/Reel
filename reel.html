@@ -1307,7 +1307,7 @@ $('#imp').onchange=async e=>{
       setAccent(S.accent||PRE[0]);setTheme(S.theme);setFont(S.font);setDensity(S.density);applyMotion();
       updateProfile();renderFavoriteGenres();wall.configure();syncPreferenceControls();syncView();
     }
-    saveLib();savePrefs();renderLib();syncWl();renderProfileChooser();load();
+    saveLib();savePrefs();renderLib();syncWl();renderProfileChooser();syncMediaTypeControls();fetchGenres();load();
   }catch{$('#p-prog').innerHTML='<p class="empty">This backup could not be read. Check that it is a valid Reel JSON backup.</p>'}
   e.target.value='';
 };
@@ -1366,12 +1366,15 @@ $('#filters').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!
   try{localStorage.setItem('mw-sort',S.sort)}catch{}savePrefs();drawFilters();load()});
 let dt;const later=()=>{clearTimeout(dt);dt=setTimeout(load,350)};
 function fetchGenres(){const endpoint=S.mediaType==='tv'?'tv':'movie',requested=S.mediaType;api('/genre/'+endpoint+'/list').then(r=>{if(requested!==S.mediaType)return;genres=r.genres||[];drawFilters();renderList();renderFavoriteGenres()}).catch(()=>{})}
+function syncMediaTypeControls(){
+  document.querySelectorAll('[data-media-type]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mediaType===S.mediaType));
+  $('#q').placeholder=S.mediaType==='tv'?'Search TV shows':'Search movies';
+}
 function setMediaType(type){
   if(!['movie','tv'].includes(type)||type===S.mediaType)return;
   S.mediaType=type;S.genre='';S.q='';S.sort='popularity.desc';$('#q').value='';$('#qc').hidden=true;
   try{localStorage.setItem('mw-sort',S.sort)}catch{}savePrefs();
-  document.querySelectorAll('[data-media-type]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mediaType===type));
-  $('#q').placeholder=type==='tv'?'Search TV shows':'Search movies';drawFilters();fetchGenres();load();
+  syncMediaTypeControls();drawFilters();fetchGenres();load();
 }
 document.querySelectorAll('[data-media-type]').forEach(b=>b.onclick=()=>setMediaType(b.dataset.mediaType));
 const yearIn=(el,k)=>el.oninput=()=>{el.value=el.value.replace(/\D/g,'');S[k]=el.value.length===4?el.value:'';if(el.value.length===4||!el.value)later()};
@@ -1729,16 +1732,14 @@ $('#reset-prefs').onclick=()=>{
   S.view=S.defaultView;
   try{localStorage.removeItem('mw-settings');localStorage.removeItem('mw-accent');localStorage.removeItem('mw-theme');localStorage.removeItem('mw-drift');localStorage.removeItem('mw-sort')}catch{}
   setAccent(PRE[0],false);setTheme('dark',false);setFont('geist',false);setDensity('comfortable',false);S.motion='system';applyMotion();
-  drawFilters();syncPreferenceControls();wall.configure();savePrefs();load();
+  drawFilters();syncPreferenceControls();wall.configure();syncMediaTypeControls();fetchGenres();savePrefs();load();
 };
 
 syncPreferenceControls();
 
 /* ---------- Start ---------- */
 renderProfileChooser();drawFilters();renderLib();load();
-$('#q').placeholder=S.mediaType==='tv'?'Search TV shows':'Search movies';
-document.querySelectorAll('[data-media-type]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mediaType===S.mediaType));
-fetchGenres();
+syncMediaTypeControls();fetchGenres();
 </script>
 </body>
 </html>
