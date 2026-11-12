@@ -16,6 +16,18 @@
   status = 200
 
 [[redirects]]
+  from = "/movie/:id"
+  to = "/.netlify/functions/share?type=movie&id=:id"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/tv/:id"
+  to = "/.netlify/functions/share?type=tv&id=:id"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
