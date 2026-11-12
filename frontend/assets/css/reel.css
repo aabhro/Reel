@@ -761,3 +761,21 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 .auth-btn{color:#f5f5f5;font:500 12px/1.25 var(--font)}
 .profile-screen__footer button{color:#d4d4d4;border-color:#525252;font:500 12px/1.2 var(--font)}
 .profile-screen__footer button:hover{color:#fff;border-color:#a3a3a3}
+
+
+/* Share actions in title details */
+.d-head h2{flex:1 1 auto;min-width:0}
+.d-actions{display:flex;align-items:center;gap:8px;flex:none}
+.d-actions .share,.d-actions .play{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;height:38px;padding:0 12px;font:500 12px/1 var(--font)}
+.d-actions .share{color:var(--text-2);border-color:var(--border)}
+.d-actions .share:hover{color:var(--text);border-color:#525252}
+.d-actions .share svg{width:15px;height:15px;stroke-width:1.8}
+.d-actions .play{height:38px}
+.share-feedback{min-height:15px;margin:5px 0 0;color:#a3a3a3;font:500 10px/1.4 var(--font)}
+.share-feedback:empty{display:none}
+@media(max-width:600px){
+  .d-head{align-items:flex-start}
+  .d-head h2{flex:1 1 100%}
+  .d-actions{margin-left:auto}
+  .d-actions .share,.d-actions .play{min-height:36px;height:36px}
+}
