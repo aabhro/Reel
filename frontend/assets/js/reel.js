@@ -808,8 +808,6 @@ function syncAuthScreen(message=''){
     description.hidden=true;
     if(identity){
       identity.hidden=false;
-      $('#account-avatar').innerHTML=image?`<img src="${esc(image)}" alt="" referrerpolicy="no-referrer">`:avatarMarkup(account.provider==='discord'?5:2);
-      $('#account-display-name').textContent=account.display_name;
       $('#account-email').textContent=account.email||'Signed in';
       $('#account-provider').textContent=providerName;
     }
