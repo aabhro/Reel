@@ -788,6 +788,7 @@ function syncAuthScreen(message=''){
   const description=$('#account-description');
   if(!status||!actions||!signOut)return;
   document.querySelectorAll('[data-auth-provider]').forEach(b=>{b.disabled=!supabase});
+  signOut.disabled=!cloudUser;
   if(!supabase){
     $('#account-summary-title').textContent='Reel account';
     $('#account-summary-subtitle').textContent='Sign-in is not configured';
