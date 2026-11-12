@@ -378,7 +378,12 @@ const yearIn=(el,k)=>el.oninput=()=>{el.value=el.value.replace(/\D/g,'');S[k]=el
 yearIn($('#y1'),'y1');yearIn($('#y2'),'y2');
 $('#rt').oninput=e=>{S.rt=+e.target.value;$('#rv').textContent=S.rt?`${S.rt.toFixed(1)} and up`:'Any';later()};
 function clearFilters(){Object.assign(S,{genre:'',y1:'',y2:'',rt:0,sort:'popularity.desc'});try{localStorage.setItem('mw-sort',S.sort)}catch{}savePrefs();$('#y1').value=$('#y2').value='';$('#rt').value=0;drawFilters();load()}
-$('#reset').onclick=clearFilters;$('#fbtn').onclick=()=>document.body.classList.toggle('fopen');
+function setFiltersOpen(open){
+  document.body.classList.toggle('fopen',open);
+  $('#fbtn').setAttribute('aria-expanded',String(open));
+}
+$('#reset').onclick=()=>{clearFilters();setFiltersOpen(false)};
+$('#fbtn').onclick=()=>setFiltersOpen(!document.body.classList.contains('fopen'));
 $('#q').oninput=e=>{S.q=e.target.value.trim();$('#qc').hidden=!e.target.value;later()};
 $('#qc').onclick=()=>{$('#q').value='';S.q='';$('#qc').hidden=true;$('#q').focus();load()};
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('#q').focus();$('#q').select()}
@@ -576,7 +581,7 @@ const wall=(()=>{
   /* click: camera flies to the poster, then the details overlay opens */
   function focus(it){if(pending||!dlg.hidden)return;focusIt=it;pending=true;caption(null);
     setTimeout(()=>{pending=false;openDetail(it.m.id)},reduce?0:450)}
-  stage.addEventListener('pointerdown',e=>{document.body.classList.remove('fopen');drag=true;moved=0;lastX=e.clientX;vel=0;stage.classList.add('drag');stage.setPointerCapture(e.pointerId);setPtr(e)});
+  stage.addEventListener('pointerdown',e=>{setFiltersOpen(false);drag=true;moved=0;lastX=e.clientX;vel=0;stage.classList.add('drag');stage.setPointerCapture(e.pointerId);setPtr(e)});
   stage.addEventListener('pointermove',e=>{inside=true;setPtr(e);if(!drag)return;const dx=e.clientX-lastX;lastX=e.clientX;moved+=Math.abs(dx);yaw-=dx*.0042*S.sensitivity;vel=-dx*.0042*30*S.sensitivity});
   stage.addEventListener('pointerup',e=>{drag=false;stage.classList.remove('drag');setPtr(e);
     if(moved<5){const h=pick();if(h)focus(h.object.userData.it)}});
@@ -745,7 +750,7 @@ function activateProfile(id){
   try{localStorage.setItem('mw-active-profile',activeProfileId)}catch{}
   saveActiveProfileMetadata();
   hideProfilePicker();
-  document.body.classList.remove('fopen');
+  setFiltersOpen(false);
   updateProfile();syncPreferenceControls();renderLib();syncWl();wall.refresh();load();
 }
 $('#profile-grid').addEventListener('click',e=>{
