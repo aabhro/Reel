@@ -747,3 +747,17 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 @media(prefers-reduced-motion:reduce){
   .account-disclosure__summary,.account-disclosure__chevron,.account-disclosure__content,[data-tip]::after{transition:none!important;animation:none!important}
 }
+
+/* Account readability refinements */
+.account-disclosure__copy strong{color:#f5f5f5;font:500 13px/1.35 var(--font)}
+.account-disclosure__copy small{color:#a3a3a3;font:400 12px/1.4 var(--font)}
+.account-disclosure__icon{color:#d4d4d4}
+.account-description{color:#d4d4d4;font:400 12px/1.55 var(--font)}
+.account-status{color:#a3a3a3;font:400 11px/1.5 var(--font)}
+.account-identity{padding:0 0 10px;margin-bottom:9px}
+.account-identity__details{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.account-identity__details strong{color:#e5e5e5;font:500 12px/1.4 var(--font);overflow-wrap:anywhere}
+.account-identity__details span{color:#a3a3a3;font:500 11px/1.4 var(--font);white-space:nowrap}
+.auth-btn{color:#f5f5f5;font:500 12px/1.25 var(--font)}
+.profile-screen__footer button{color:#d4d4d4;border-color:#525252;font:500 12px/1.2 var(--font)}
+.profile-screen__footer button:hover{color:#fff;border-color:#a3a3a3}
