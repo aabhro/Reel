@@ -7,7 +7,7 @@ catch(error){console.warn('Supabase client unavailable. Guest mode remains avail
 const PUBLIC_CONFIG = await fetch('/api/config', { headers:{ Accept:'application/json' } })
   .then(r=>r.ok?r.json():{})
   .catch(()=>({}));
-const supabase = PUBLIC_CONFIG.supabaseUrl && PUBLIC_CONFIG.supabaseAnonKey
+const supabase = createClient && PUBLIC_CONFIG.supabaseUrl && PUBLIC_CONFIG.supabaseAnonKey
   ? createClient(PUBLIC_CONFIG.supabaseUrl, PUBLIC_CONFIG.supabaseAnonKey, {
       auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
     })
