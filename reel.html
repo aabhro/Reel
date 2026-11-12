@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Reel</title>
-<link rel="icon" href="data:,">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5a524' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16a2 2 0 0 1 2 2v11H2V9a2 2 0 0 1 2-2Z'/%3E%3Cpath d='m4 7 2-5 4 5 2-5 4 5 2-5 4 5M2 12h20'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -412,6 +412,12 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 .profile-fields label{display:grid;gap:7px;color:#a3a3a3;font-size:12px}
 .profile-fields input{height:38px;width:100%;min-width:0;padding:0 12px;border:1px solid #262626;border-radius:8px;background:transparent;color:#f5f5f5}
 .profile-fields input:focus{border-color:#737373}
+.media-switch{margin-left:2px}
+.tv-controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.tv-controls[hidden]{display:none}
+.tv-controls label{display:grid;gap:5px;color:#a3a3a3;font-size:11px}
+.tv-controls select{min-width:112px;height:34px;padding:0 28px 0 10px;border:1px solid #262626;border-radius:7px;background:#0a0a0a;color:#f5f5f5;font:inherit}
+.tv-controls select:focus{border-color:#737373}
 .favorite-grid{display:flex;flex-wrap:wrap;gap:7px}
 .favorite-chip{padding:7px 11px;border:1px solid #262626;border-radius:999px;color:#a3a3a3;font-size:12px;transition:color var(--m-duration-fast),border-color var(--m-duration-fast)}
 .favorite-chip:hover,.favorite-chip[aria-pressed=true]{color:#f5f5f5;border-color:var(--accent-border)}
@@ -531,6 +537,9 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
   </div>
   <div class="tools">
     <button class="profile-switch" id="profile-switch" aria-label="Switch profile"><span class="profile-avatar" id="nav-avatar"></span><span id="nav-profile-name">Guest</span></button>
+    <div class="seg media-switch" role="group" aria-label="Content type">
+      <button data-media-type="movie" aria-pressed="true">Movies</button><button data-media-type="tv" aria-pressed="false">TV shows</button>
+    </div>
     <button class="btn" id="fbtn">Filters</button>
     <div class="seg" role="group" aria-label="View">
       <button data-view="wall" aria-pressed="true">Wall</button><button data-view="list" aria-pressed="false">List</button>
@@ -654,7 +663,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
   <div class="m-dialog__panel">
     <button class="x" data-motion-close aria-label="Close details"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     <div class="hero" id="d-hero"></div>
-    <div class="d-body"><img id="d-img" alt=""><div><div class="d-head"><h2 id="d-title"></h2><button class="btn play" id="play"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.8l-12-7.5A1 1 0 0 0 7 4.5Z"/></svg>Play movie</button></div><div class="d-meta" id="d-meta"></div><div class="d-tag" id="d-tag"></div><p id="d-over"></p><dl id="d-more"></dl><button class="btn" id="wl" aria-pressed="false" style="margin-top:16px">Add to watchlist</button></div></div>
+    <div class="d-body"><img id="d-img" alt=""><div><div class="d-head"><h2 id="d-title"></h2><button class="btn play" id="play"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.8l-12-7.5A1 1 0 0 0 7 4.5Z"/></svg><span id="play-label">Play movie</span></button></div><div class="d-meta" id="d-meta"></div><div class="d-tag" id="d-tag"></div><p id="d-over"></p><div class="tv-controls" id="tv-controls" hidden><label>Season<select id="tv-season"></select></label><label>Episode<select id="tv-episode"></select></label></div><dl id="d-more"></dl><button class="btn" id="wl" aria-pressed="false" style="margin-top:16px">Add to watchlist</button></div></div>
     <div class="cast-wrap" id="d-castw" hidden><h4>Cast</h4><div class="cast" id="d-cast"></div></div>
   </div>
 </div>
@@ -1083,9 +1092,11 @@ const $=s=>document.querySelector(s);
 if(window.lucide)window.lucide.createIcons();
 let systemReduce=matchMedia('(prefers-reduced-motion: reduce)').matches, reduce=systemReduce;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const yr=m=>(m.release_date||'').slice(0,4), rate=m=>m.vote_average?m.vote_average.toFixed(1):'–';
+const yr=m=>(m.release_date||m.first_air_date||'').slice(0,4), rate=m=>m.vote_average?m.vote_average.toFixed(1):'–';
+const mediaTitle=m=>m.title||m.name||'Untitled';
+const mediaType=m=>m?.media_type||S.mediaType||'movie';
 const SETTINGS_DEFAULTS={
-  profileName:'Guest',profileNote:'',favorites:[],theme:'dark',accent:'#f5a524',sort:'popularity.desc',
+  profileName:'Guest',profileNote:'',favorites:[],theme:'dark',accent:'#f5a524',sort:'popularity.desc',mediaType:'movie',
   font:'geist',density:'comfortable',rows:3,posterSize:1,sensitivity:1,
   drift:true,driftSpeed:1,showMini:true,showChips:true,showHint:true,
   motion:'system',defaultView:'wall'
@@ -1105,13 +1116,18 @@ if(!['geist','inter','system'].includes(S.font))S.font='geist';
 if(!['comfortable','compact'].includes(S.density))S.density='comfortable';
 if(!['system','full','reduced'].includes(S.motion))S.motion='system';
 if(!['wall','list'].includes(S.defaultView))S.defaultView='wall';
+if(!['movie','tv'].includes(S.mediaType))S.mediaType='movie';
 S.view=S.defaultView;
 const emptyLibrary=()=>({list:[],hist:[],prog:{}});
-const copyLibrary=value=>({
-  list:Array.isArray(value?.list)?value.list:[],
-  hist:Array.isArray(value?.hist)?value.hist:[],
-  prog:value?.prog&&typeof value.prog==='object'?value.prog:{}
-});
+const progressKey=m=>`${m.media_type||'movie'}:${m.id}:${m.media_type==='tv'?(m.season_number||1):0}:${m.media_type==='tv'?(m.episode_number||1):0}`;
+const libraryKey=m=>`${m.media_type||'movie'}:${m.id}`;
+const copyLibrary=value=>{
+  const list=(Array.isArray(value?.list)?value.list:[]).map(m=>({...m,media_type:m.media_type||'movie'}));
+  const hist=(Array.isArray(value?.hist)?value.hist:[]).map(m=>({...m,media_type:m.media_type||'movie'}));
+  const prog={};
+  if(value?.prog&&typeof value.prog==='object')Object.values(value.prog).forEach(p=>{const item={...p,media_type:p.media_type||'movie'};prog[progressKey(item)]=item});
+  return{list,hist,prog};
+};
 const PROFILE_STORE_KEY='mw-profiles';
 const AVATARS=[
   {bg:'#344b60',skin:'#e7b58e',hair:'#352d35',shirt:'#8eacc4'},
@@ -1217,34 +1233,34 @@ matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change',e=>{s
 /* ---------- Library: watchlist, history, progress ---------- */
 let lib=copyLibrary(activeProfile.lib),cur=null;
 const saveLib=()=>{if(!activeProfile)return;activeProfile.lib=copyLibrary(lib);persistProfiles();};
-const snap=m=>({id:m.id,title:m.title,poster_path:m.poster_path,release_date:m.release_date,vote_average:m.vote_average});
-const inList=id=>lib.list.some(x=>x.id===id),chipTxt=m=>rate(m)+(inList(m.id)?' · Saved':'');
-const meta=id=>lib.list.find(x=>x.id==id)||lib.hist.find(x=>x.id==id)||lib.prog[id];
+const snap=m=>({id:m.id,title:mediaTitle(m),name:m.name,media_type:mediaType(m),poster_path:m.poster_path,backdrop_path:m.backdrop_path,release_date:m.release_date,first_air_date:m.first_air_date,vote_average:m.vote_average,season_number:m.season_number,episode_number:m.episode_number});
+const inList=m=>{const key=typeof m==='object'?libraryKey(m):`${S.mediaType}:${m}`;return lib.list.some(x=>libraryKey(x)===key)},chipTxt=m=>rate(m)+(inList(m)?' · Saved':'');
+const meta=(id,type=S.mediaType)=>lib.list.find(x=>libraryKey(x)===`${type}:${id}`)||lib.hist.find(x=>libraryKey(x)===`${type}:${id}`)||Object.values(lib.prog).find(x=>x.id==id&&mediaType(x)===type);
 const fmt=s=>{s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}h ${m}m`:`${m}m`};
 const when=t=>new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'});
-function syncWl(){const b=$('#wl'),on=cur&&inList(cur.id);b.setAttribute('aria-pressed',!!on);b.textContent=on?'On watchlist':'Add to watchlist'}
-function toggleList(m){lib.list=inList(m.id)?lib.list.filter(x=>x.id!==m.id):[snap(m),...lib.list];saveLib();syncWl();renderLib();wall.refresh()}
+function syncWl(){const b=$('#wl'),on=cur&&inList(cur);b.setAttribute('aria-pressed',!!on);b.textContent=on?'On watchlist':'Add to watchlist'}
+function toggleList(m){lib.list=inList(m)?lib.list.filter(x=>libraryKey(x)!==libraryKey(m)):[snap(m),...lib.list];saveLib();syncWl();renderLib();wall.refresh()}
 $('#wl').onclick=()=>cur&&toggleList(cur);
-const act=(a,id,t)=>`<button class="lnk" data-act="${a}" data-id="${id}">${t}</button>`;
+const act=(a,m,t)=>`<button class="lnk" data-act="${a}" data-id="${m.id}" data-type="${mediaType(m)}">${t}</button>`;
 const lrow=(m,sub,acts,bar='')=>`<div class="lr"><img alt="" loading="lazy" src="${m.poster_path?IMG+'w92'+m.poster_path:''}"><div class="lt"><b>${esc(m.title)}</b><span>${sub}</span>${bar}</div><div class="la">${acts}</div></div>`;
 function renderLib(){
   const empty=t=>`<p class="empty">${t}</p>`;
   $('#c-list').textContent=lib.list.length||'';$('#c-hist').textContent=lib.hist.length||'';
-  $('#p-list').innerHTML=lib.list.length?lib.list.map(m=>lrow(m,`${yr(m)} · ${rate(m)}`,act('play',m.id,'Play')+act('open',m.id,'Details')+act('rmlist',m.id,'Remove'))).join(''):empty('Nothing saved yet. Open a movie and choose Add to watchlist.');
-  $('#p-hist').innerHTML=lib.hist.length?lib.hist.map(m=>lrow(m,`${yr(m)} · Watched ${when(m.at)}`,act('play',m.id,'Play again')+act('open',m.id,'Details')+act('rmhist',m.id,'Remove'))).join(''):empty('Movies you play will show up here.');
+  $('#p-list').innerHTML=lib.list.length?lib.list.map(m=>lrow(m,`${mediaType(m)==='tv'?'TV show':'Movie'} · ${yr(m)} · ${rate(m)}`,act('play',m,'Play')+act('open',m,'Details')+act('rmlist',m,'Remove'))).join(''):empty('Nothing saved yet. Open a title and choose Add to watchlist.');
+  $('#p-hist').innerHTML=lib.hist.length?lib.hist.map(m=>lrow(m,`${mediaType(m)==='tv'?'TV show':'Movie'} · ${yr(m)} · Watched ${when(m.at)}`,act('play',m,'Play again')+act('open',m,'Details')+act('rmhist',m,'Remove'))).join(''):empty('Titles you play will show up here.');
   const pr=Object.values(lib.prog).sort((a,b)=>b.at-a.at),done=pr.filter(p=>p.done).length,secs=pr.reduce((n,p)=>n+(p.done?p.d:p.t),0);
-  $('#p-stats').innerHTML=[[pr.length,'Started'],[done,'Finished'],[fmt(secs),'Time watched']].map(([v,l])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
-  $('#p-prog').innerHTML=pr.length?pr.map(p=>{const pct=Math.min(100,Math.round(p.t/p.d*100));
-    return lrow(p,p.done?'Finished':`${fmt(p.t)} of ${fmt(p.d)} · ${pct}%`,act('play',p.id,p.done?'Play again':'Resume')+act('open',p.id,'Details')+act('rmprog',p.id,'Remove'),`<div class="pb"><i style="width:${p.done?100:pct}%"></i></div>`)}).join(''):empty('Progress is tracked while you watch. Start a movie to see it here.')}
+  $('#p-stats').innerHTML=[[pr.length,'Episodes / titles'],[done,'Finished'],[fmt(secs),'Time watched']].map(([v,l])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+  $('#p-prog').innerHTML=pr.length?pr.map(p=>{const pct=Math.min(100,Math.round(p.t/Math.max(1,p.d)*100)),ep=mediaType(p)==='tv'?` · S${p.season_number} E${p.episode_number}`:'';
+    return lrow(p,`${mediaType(p)==='tv'?'TV show':'Movie'}${ep} · ${p.done?'Finished':`${fmt(p.t)} of ${fmt(p.d)} · ${pct}%`}`,act('play',p,p.done?'Play again':'Resume')+act('open',p,'Details')+act('rmprog',p,'Remove'),`<div class="pb"><i style="width:${p.done?100:pct}%"></i></div>`)}).join(''):empty('Progress is tracked as you watch. Start something to see it here.')}
 const stg=$('#settings');
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===t));
   document.querySelectorAll('[data-pane]').forEach(p=>p.hidden=p.dataset.pane!==t.dataset.tab);renderLib()});
 document.querySelector('[data-motion-open="#settings"]').addEventListener('click',renderLib);
-stg.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const id=+b.dataset.id,a=b.dataset.act,m=meta(id);
-  if(a==='rmlist'){lib.list=lib.list.filter(x=>x.id!==id);wall.refresh();syncWl()}
-  else if(a==='rmhist')lib.hist=lib.hist.filter(x=>x.id!==id);
-  else if(a==='rmprog')delete lib.prog[id];
-  else if(m){Motion.setOpen(stg,false);if(a==='open')openDetail(id,null,m);else startPlay(m);return}
+stg.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const id=+b.dataset.id,type=b.dataset.type||'movie',a=b.dataset.act,m=meta(id,type);
+  if(a==='rmlist'){lib.list=lib.list.filter(x=>libraryKey(x)!==`${type}:${id}`);wall.refresh();syncWl()}
+  else if(a==='rmhist')lib.hist=lib.hist.filter(x=>libraryKey(x)!==`${type}:${id}`);
+  else if(a==='rmprog'){Object.keys(lib.prog).forEach(k=>{if(lib.prog[k].id==id&&mediaType(lib.prog[k])===type)delete lib.prog[k]})}
+  else if(m){Motion.setOpen(stg,false);if(a==='open')openDetail(id,null,m,type);else startPlay(m);return}
   saveLib();renderLib()});
 $('#clr-h').onclick=()=>{lib.hist=[];saveLib();renderLib()};
 $('#exp').onclick=()=>{
@@ -1303,15 +1319,16 @@ async function load(){
   const id=++reqId;setStatus('loading');
   try{
     const pages=S.q?[1,2,3]:[1,2,3,4,5];let ok=0,all=[];
-    const rs=await Promise.all(pages.map(p=>(S.q?api('/search/movie',{query:S.q,page:p,include_adult:false}):
-      api('/discover/movie',{page:p,include_adult:false,sort_by:S.sort==='personalized'?'popularity.desc':S.sort,with_genres:S.genre,
-        'primary_release_date.gte':S.y1?S.y1+'-01-01':'','primary_release_date.lte':S.y2?S.y2+'-12-31':(S.sort.startsWith('primary')?new Date().toISOString().slice(0,10):''),
+    const type=S.mediaType,endpoint=type==='tv'?'tv':'movie',newest=type==='tv'?'first_air_date.desc':'primary_release_date.desc',dateField=type==='tv'?'first_air_date':'primary_release_date';
+    const rs=await Promise.all(pages.map(p=>(S.q?api('/search/'+endpoint,{query:S.q,page:p,include_adult:false}):
+      api('/discover/'+endpoint,{page:p,include_adult:false,sort_by:S.sort==='personalized'?'popularity.desc':S.sort==='primary_release_date.desc'?newest:S.sort,with_genres:S.genre,
+        [dateField+'.gte']:S.y1?S.y1+'-01-01':'',[dateField+'.lte']:S.y2?S.y2+'-12-31':(S.sort.startsWith('primary')?new Date().toISOString().slice(0,10):''),
         'vote_average.gte':S.rt||'','vote_count.gte':S.sort.startsWith('vote')?300:S.sort.startsWith('primary')?15:50}))
       .then(r=>{ok++;return r.results||[]}).catch(()=>[])));
     if(id!==reqId)return; if(!ok||(!rs.some(r=>r.length)&&ok<pages.length&&false))throw 0;
     const seen=new Set();all=rs.flat().filter(m=>m.poster_path&&!seen.has(m.id)&&seen.add(m.id));
-    if(S.q){ all=all.filter(m=>(!S.genre||m.genre_ids.includes(+S.genre))&&(!S.y1||+yr(m)>=+S.y1)&&(!S.y2||+yr(m)<=+S.y2)&&m.vote_average>=S.rt);
-      const k=S.sort.startsWith('vote')?m=>m.vote_count>20?m.vote_average:0:S.sort.startsWith('primary')?m=>m.release_date||'':null;
+    if(S.q){ all=all.filter(m=>(!S.genre||m.genre_ids?.includes(+S.genre))&&(!S.y1||+yr(m)>=+S.y1)&&(!S.y2||+yr(m)<=+S.y2)&&m.vote_average>=S.rt);
+      const k=S.sort.startsWith('vote')?m=>m.vote_count>20?m.vote_average:0:S.sort.startsWith('primary')?m=>m.release_date||m.first_air_date||'':null;
       if(k)all.sort((a,b)=>k(a)<k(b)?1:-1); }
     if(S.sort==='personalized'&&S.favorites.length){
       const fav=new Set(S.favorites);
@@ -1321,16 +1338,16 @@ async function load(){
     movies=all;render();
   }catch{ if(id!==reqId)return; movies=[];wall.set([]);renderList();setStatus('error') }
 }
-function setStatus(k){const s=$('#status');
-  if(k==='loading')s.innerHTML='<div class="m-shimmer-text">Loading movies</div>';
+function setStatus(k){const s=$('#status'),noun=S.mediaType==='tv'?'TV shows':'movies';
+  if(k==='loading')s.innerHTML='<div class="m-shimmer-text">Loading '+noun+'</div>';
   else if(k==='error')s.innerHTML='<div><p>Could not reach TMDB. Check your connection and try again.</p><button class="btn" id="retry">Retry</button></div>';
-  else if(k==='empty')s.innerHTML='<div><p>No movies match these filters.</p><button class="btn" id="clr2">Clear filters</button></div>';
+  else if(k==='empty')s.innerHTML='<div><p>No '+noun+' match these filters.</p><button class="btn" id="clr2">Clear filters</button></div>';
   else s.innerHTML=''; }
 $('#status').onclick=e=>{if(e.target.id==='retry')load();if(e.target.id==='clr2')clearFilters()};
 function render(){setStatus(movies.length?'':'empty');wall.set(movies);renderList()}
-function renderList(){$('#ol').innerHTML=movies.map(m=>`<li><button class="row-i m-reveal" data-id="${m.id}"><img loading="lazy" alt="" src="${IMG}w92${m.poster_path}"><span class="t"><b>${esc(m.title)}</b><span>${yr(m)} · ${esc(gnames(m))}</span></span><span class="r">${rate(m)}</span></button></li>`).join('')}
+function renderList(){$('#ol').innerHTML=movies.map(m=>`<li><button class="row-i m-reveal" data-id="${m.id}" data-type="${S.mediaType}"><img loading="lazy" alt="" src="${IMG}w92${m.poster_path}"><span class="t"><b>${esc(mediaTitle(m))}</b><span>${yr(m)} · ${esc(gnames(m))}</span></span><span class="r">${rate(m)}</span></button></li>`).join('')}
 const gnames=m=>(m.genre_ids||[]).map(i=>genres.find(g=>g.id===i)?.name).filter(Boolean).slice(0,3).join(', ');
-$('#ol').onclick=e=>{const b=e.target.closest('.row-i');if(b)openDetail(+b.dataset.id,b)};
+$('#ol').onclick=e=>{const b=e.target.closest('.row-i');if(b)openDetail(+b.dataset.id,b,null,b.dataset.type||S.mediaType)};
 
 /* ---------- Filters ---------- */
 function drawFilters(){
@@ -1341,6 +1358,15 @@ $('#filters').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!
   if('sort'in b.dataset)S.sort=b.dataset.sort;if('genre'in b.dataset)S.genre=b.dataset.genre;
   try{localStorage.setItem('mw-sort',S.sort)}catch{}savePrefs();drawFilters();load()});
 let dt;const later=()=>{clearTimeout(dt);dt=setTimeout(load,350)};
+function fetchGenres(){const endpoint=S.mediaType==='tv'?'tv':'movie',requested=S.mediaType;api('/genre/'+endpoint+'/list').then(r=>{if(requested!==S.mediaType)return;genres=r.genres||[];drawFilters();renderList();renderFavoriteGenres()}).catch(()=>{})}
+function setMediaType(type){
+  if(!['movie','tv'].includes(type)||type===S.mediaType)return;
+  S.mediaType=type;S.genre='';S.q='';S.sort='popularity.desc';$('#q').value='';$('#qc').hidden=true;
+  try{localStorage.setItem('mw-sort',S.sort)}catch{}savePrefs();
+  document.querySelectorAll('[data-media-type]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mediaType===type));
+  $('#q').placeholder=type==='tv'?'Search TV shows':'Search movies';drawFilters();fetchGenres();load();
+}
+document.querySelectorAll('[data-media-type]').forEach(b=>b.onclick=()=>setMediaType(b.dataset.mediaType));
 const yearIn=(el,k)=>el.oninput=()=>{el.value=el.value.replace(/\D/g,'');S[k]=el.value.length===4?el.value:'';if(el.value.length===4||!el.value)later()};
 yearIn($('#y1'),'y1');yearIn($('#y2'),'y2');
 $('#rt').oninput=e=>{S.rt=+e.target.value;$('#rv').textContent=S.rt?`${S.rt.toFixed(1)} and up`:'Any';later()};
@@ -1364,44 +1390,72 @@ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{S.view=b.data
 /* ---------- Detail ---------- */
 const dlg=$('#dlg');
 let openId=0;
-async function openDetail(id,trigger,fallback){
-  const m=movies.find(x=>x.id===id)||fallback||{};openId=id;cur=snap({...m,id});syncWl();
-  $('#d-title').textContent=m.title||'';$('#d-over').textContent=m.overview||'No description available.';$('#d-tag').textContent='';
+async function openDetail(id,trigger,fallback,typeOverride){
+  const type=typeOverride||mediaType(fallback||{media_type:S.mediaType}),m=movies.find(x=>x.id===id)||fallback||{};openId=type+':'+id;cur=snap({...m,id,media_type:type});syncWl();
+  $('#d-title').textContent=mediaTitle(m);$('#d-over').textContent=m.overview||'No description available.';$('#d-tag').textContent='';
   $('#d-img').src=m.poster_path?IMG+'w342'+m.poster_path:'';
   $('#d-hero').style.backgroundImage=m.backdrop_path?`url(${IMG}w780${m.backdrop_path})`:'';
   $('#d-meta').innerHTML=`${yr(m)} · <b>${rate(m)}</b>`;$('#d-more').innerHTML='';$('#d-castw').hidden=true;
+  $('#tv-controls').hidden=type!=='tv';$('#play-label').textContent=type==='tv'?'Play episode':'Play movie';$('#tv-season').innerHTML='';$('#tv-episode').innerHTML='';
   Motion.setOpen(dlg,true,trigger);dlg.querySelector('.m-dialog__panel').scrollTop=0;
-  try{const d=await api('/movie/'+id,{append_to_response:'credits,videos'});
-    if(openId!==id)return;cur=snap(d);syncWl();
-    const t=d.runtime?` · ${Math.floor(d.runtime/60)}h ${d.runtime%60}m`:'';
+  try{const d=await api('/'+type+'/'+id,{append_to_response:'credits,videos'});
+    if(openId!==type+':'+id)return;cur={...snap(d),media_type:type};syncWl();
+    const runtime=d.runtime||(d.episode_run_time||[])[0];
+    const t=runtime?` · ${Math.floor(runtime/60)}h ${runtime%60}m`:'';
+    if(type==='tv'){
+      const seasons=(d.seasons||[]).filter(x=>x.season_number>=0),initial=seasons.find(x=>x.season_number>0)||seasons[0];
+      $('#tv-season').innerHTML=seasons.map(x=>`<option value="${x.season_number}">${esc(x.name||('Season '+x.season_number))}</option>`).join('');
+      if(initial){$('#tv-season').value=initial.season_number;await loadSeason(id,+initial.season_number)}
+    }
     $('#d-meta').innerHTML=`${yr(d)}${t} · <b>${rate(d)}</b>${d.vote_count?` <span>(${d.vote_count.toLocaleString()} votes)</span>`:''}`;
     $('#d-tag').textContent=d.tagline||'';$('#d-over').textContent=d.overview||m.overview||'No description available.';
-    const dir=(d.credits?.crew||[]).filter(c=>c.job==='Director').map(c=>c.name).join(', ');
+    const creator=(d.created_by||[]).map(c=>c.name).join(', '),dir=(d.credits?.crew||[]).filter(c=>c.job==='Director').map(c=>c.name).join(', ');
     const v=(d.videos?.results||[]).find(v=>v.site==='YouTube'&&v.type==='Trailer');
     const row=(k,val)=>val?`<dt>${k}</dt><dd>${val}</dd>`:'';
-    $('#d-more').innerHTML=row('Director',esc(dir))+row('Genres',esc((d.genres||[]).map(g=>g.name).join(', ')))+row('Released',esc(d.release_date))+
+    $('#d-more').innerHTML=(type==='tv'?row('Created by',esc(creator))+row('Seasons',String(d.number_of_seasons||0))+row('Episodes',String(d.number_of_episodes||0))+row('First aired',esc(d.first_air_date))+row('Last aired',esc(d.last_air_date)):row('Director',esc(dir))+row('Released',esc(d.release_date)))+row('Genres',esc((d.genres||[]).map(g=>g.name).join(', ')))+
       row('Trailer',v?`<a href="https://www.youtube.com/watch?v=${esc(v.key)}" target="_blank" rel="noopener">Watch on YouTube</a>`:'');
     const cast=(d.credits?.cast||[]).slice(0,12);
     $('#d-cast').innerHTML=cast.map(c=>`<div class="c">${c.profile_path?`<img loading="lazy" alt="" src="${IMG}w185${c.profile_path}">`:'<div class="ph"></div>'}<b>${esc(c.name)}</b><span>${esc(c.character||'')}</span></div>`).join('');
     $('#d-castw').hidden=!cast.length;
-  }catch{if(openId===id)$('#d-more').innerHTML='<dt>Details</dt><dd>Cast and trailer could not be loaded.</dd>'}
+  }catch{if(openId===type+':'+id)$('#d-more').innerHTML='<dt>Details</dt><dd>Cast, episodes or trailer could not be loaded.</dd>'}
+}
+let seasonReq=0;
+async function loadSeason(id,season){
+  const request=++seasonReq;$('#tv-episode').innerHTML='<option>Loading episodes…</option>';
+  try{
+    const data=await api('/tv/'+id+'/season/'+season);
+    if(request!==seasonReq||openId!=='tv:'+id)return;
+    const episodes=data.episodes||[];
+    $('#tv-episode').innerHTML=episodes.map(ep=>`<option value="${ep.episode_number}">E${ep.episode_number} · ${esc(ep.name||('Episode '+ep.episode_number))}</option>`).join('');
+    if(episodes.length){const prior=Object.values(lib.prog).filter(p=>p.id==id&&mediaType(p)==='tv'&&p.season_number===season&&!p.done).sort((a,b)=>b.at-a.at)[0];
+      const selected=prior?.episode_number||episodes[0].episode_number;$('#tv-episode').value=String(selected);cur={...cur,season_number:season,episode_number:selected}}
+  }catch{if(request===seasonReq)$('#tv-episode').innerHTML='<option value="1">Episode list unavailable</option>'}
+}
+$('#tv-season').onchange=()=>openId.startsWith('tv:')&&loadSeason(+openId.slice(3),+$('#tv-season').value);
+$('#tv-episode').onchange=()=>{if(cur&&cur.media_type==='tv')cur={...cur,season_number:+$('#tv-season').value,episode_number:+$('#tv-episode').value}};
 }
 
 /* ---------- Player: full-screen CineSrc embed ---------- */
 const pl=$('#player'),pf=$('#pf');
 let playing=null,lastT=0,lastD=0,lastSave=0;
-function saveProg(done){if(!playing||!lastD)return;lib.prog[playing.id]={...playing,t:lastT,d:lastD,at:Date.now(),done:!!done||lastT/lastD>.92};saveLib()}
-function startPlay(m){playing=snap(m);const pr=lib.prog[m.id];lastT=pr?.t||0;lastD=pr?.d||0;lastSave=0;
-  lib.hist=[{...playing,at:Date.now()},...lib.hist.filter(x=>x.id!==m.id)].slice(0,100);saveLib();
+function saveProg(done){if(!playing||!lastD)return;lib.prog[progressKey(playing)]={...playing,t:lastT,d:lastD,at:Date.now(),done:!!done||lastT/lastD>.92};saveLib();renderLib()}
+function startPlay(m){
+  const type=mediaType(m);let item={...snap(m),season_number:m.season_number||1,episode_number:m.episode_number||1};
+  if(type==='tv'&&!m.season_number&&!m.episode_number){const recent=Object.values(lib.prog).filter(p=>p.id==m.id&&mediaType(p)==='tv'&&!p.done).sort((a,b)=>b.at-a.at)[0];if(recent)item={...item,season_number:recent.season_number,episode_number:recent.episode_number}}
+  playing=item;const pr=lib.prog[progressKey(playing)];lastT=pr?.t||0;lastD=pr?.d||0;lastSave=0;
+  lib.hist=[{...playing,at:Date.now()},...lib.hist.filter(x=>libraryKey(x)!==libraryKey(playing))].slice(0,100);saveLib();
   const acc=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-  let u=`https://cinesrc.st/embed/movie/${m.id}?color=${encodeURIComponent(acc)}&back=close`;if(pr&&pr.t>30&&!pr.done)u+=`&t=${Math.floor(pr.t)}`;
-  Motion.setOpen(pl,true,$('#play'));pf.src=u}
+  let u=type==='tv'?`https://cinesrc.st/embed/tv/${m.id}?s=${playing.season_number}&e=${playing.episode_number}&color=${encodeURIComponent(acc)}&back=close`:`https://cinesrc.st/embed/movie/${m.id}?color=${encodeURIComponent(acc)}&back=close`;
+  if(pr&&pr.t>30&&!pr.done)u+=`&t=${Math.floor(pr.t)}`;
+  Motion.setOpen(pl,true,$('#play'));pf.src=u
+}
 $('#play').onclick=()=>cur&&startPlay(cur);
 new MutationObserver(()=>{if(pl.hidden||pl.dataset.state==='closing'){if(playing){saveProg();playing=null}pf.src='about:blank'}}).observe(pl,{attributes:true,attributeFilter:['hidden','data-state']});
 addEventListener('message',e=>{if(e.origin!=='https://cinesrc.st')return;const d=e.data||{};
   if(d.type==='cinesrc:timeupdate'&&playing){lastT=d.currentTime;lastD=d.duration;if(Date.now()-lastSave>4000){lastSave=Date.now();saveProg()}}
   else if(d.type==='cinesrc:pause')saveProg();
   else if(d.type==='cinesrc:ended'){lastT=lastD||lastT;saveProg(true)}
+  else if(d.type==='cinesrc:nextepisode'&&playing?.media_type==='tv'){saveProg(true);playing={...playing,season_number:+d.season||playing.season_number,episode_number:+d.episode||playing.episode_number+1};lastT=0;lastD=0;lastSave=0}
   else if(d.type==='cinesrc:close')Motion.setOpen(pl,false,null,true)});
 /* tilt the poster in the overlay toward the pointer */
 const di=$('#d-img');if(!reduce){di.addEventListener('pointermove',e=>{const r=di.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
@@ -1676,7 +1730,9 @@ syncPreferenceControls();
 
 /* ---------- Start ---------- */
 renderProfileChooser();drawFilters();renderLib();load();
-api('/genre/movie/list').then(r=>{genres=r.genres||[];drawFilters();renderList();renderFavoriteGenres()}).catch(()=>{});
+$('#q').placeholder=S.mediaType==='tv'?'Search TV shows':'Search movies';
+document.querySelectorAll('[data-media-type]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mediaType===S.mediaType));
+fetchGenres();
 </script>
 </body>
 </html>
