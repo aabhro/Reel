@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16a2 2 0 0 1 2 2v11H2V9a2 2 0 0 1 2-2Z'/%3E%3Cpath d='m4 7 2-5 4 5 2-5 4 5 2-5 4 5M2 12h20'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/reel.css">
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","@supabase/supabase-js":"https://esm.sh/@supabase/supabase-js@2"}}</script>
+<script defer src="https://unpkg.com/lucide@latest"></script>
+
+</head>
+<body>
+<section id="profile-screen" class="profile-screen" role="dialog" aria-modal="true" aria-labelledby="profile-heading">
+  <div class="profile-screen__inner">
+    <div class="profile-wordmark" aria-label="Cinema"><i data-lucide="clapperboard" aria-hidden="true"></i></div>
+    <h1 id="profile-heading">Who's watching?</h1>
+    <div class="profile-grid" id="profile-grid"></div>
+    <div class="profile-editor" id="profile-editor" hidden>
+      <h2 id="profile-editor-title">Create profile</h2>
+      <label for="profile-editor-name">Profile name</label>
+      <input id="profile-editor-name" type="text" maxlength="24" placeholder="Enter a name" autocomplete="off">
+      <div class="field-label" style="margin-top:16px">Choose a profile picture</div>
+      <div class="avatar-options" id="avatar-options"></div>
+      <div class="profile-error" id="profile-error" aria-live="polite"></div>
+      <div class="profile-editor__actions"><button id="profile-cancel">Cancel</button><button id="profile-save" class="primary">Save profile</button></div>
+    </div>
+    <div class="profile-screen__footer">
+      <button id="manage-profiles">Manage profiles</button>
+    </div>
+    <section class="account-auth" aria-label="Account sign in">
+      <p id="account-status" aria-live="polite">Guest mode. Your data stays in this browser until you sign in.</p>
+      <div class="auth-actions" id="auth-actions">
+        <button class="auth-btn" type="button" data-auth-provider="google">Continue with Google</button>
+        <button class="auth-btn" type="button" data-auth-provider="discord">Continue with Discord</button>
+      </div>
+      <button id="sign-out" type="button" hidden>Sign out</button>
+    </section>
+  </div>
+</section>
+<div id="stage" aria-label="Interactive wall of movie posters"></div>
+<div class="fade left"></div><div class="fade top"></div><div class="fade bot"></div>
+<div id="brand" aria-label="Reel profile"><span class="brand-mark"><i data-lucide="clapperboard" aria-hidden="true"></i></span><span id="brand-user">for Guest</span><small id="brand-note"></small></div>
+<header class="bar">
+  <div class="search" role="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="text" placeholder="Search movies" aria-label="Search movies" autocomplete="off">
+    <button id="qc" hidden aria-label="Clear search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <kbd>Ctrl K</kbd>
+  </div>
+  <div class="tools">
+    <button class="profile-switch" id="profile-switch" aria-label="Switch profile"><span class="profile-avatar" id="nav-avatar"></span><span id="nav-profile-name">Guest</span></button>
+    <div class="seg media-switch" role="group" aria-label="Content type">
+      <button data-media-type="movie" aria-pressed="true">Movies</button><button data-media-type="tv" aria-pressed="false">TV shows</button>
+    </div>
+    <button class="btn" id="fbtn">Filters</button>
+    <div class="seg" role="group" aria-label="View">
+      <button data-view="wall" aria-pressed="true">Wall</button><button data-view="list" aria-pressed="false">List</button>
+    </div>
+    <button class="icon" data-motion-open="#settings" aria-haspopup="dialog" aria-expanded="false" aria-label="Settings and library" data-tip="Settings, watchlist and history">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      </button>
+  </div>
+</header>
+<aside id="filters" aria-label="Filters">
+  <section><h3>Sort by</h3><div id="f-sort"></div></section>
+  <section><h3>Genre</h3><div id="f-genre"></div></section>
+  <section><h3>Release year</h3><div class="yrs"><input id="y1" inputmode="numeric" maxlength="4" placeholder="From" aria-label="From year"><span>to</span><input id="y2" inputmode="numeric" maxlength="4" placeholder="To" aria-label="To year"></div></section>
+  <section><h3>Minimum rating</h3><div class="rate"><span id="rv">Any</span></div><input type="range" id="rt" min="0" max="9" step="0.5" value="0" aria-label="Minimum rating"></section>
+  <button class="btn" id="reset" style="margin-bottom:12px">Clear filters</button>
+</aside>
+<main id="list" hidden><ol id="ol"></ol></main>
+<div id="status"></div>
+<div id="chips"></div><canvas id="mini" width="192" height="192" aria-hidden="true"></canvas>
+<div id="caption" aria-live="polite"><div id="cap-t"></div><div id="cap-m"></div></div>
+<div id="hint">Drag or scroll to move along the wall</div>
+
+<div id="settings" class="m-dialog" role="dialog" aria-modal="true" aria-label="Settings and library" hidden>
+  <div class="m-dialog__backdrop" data-motion-close></div>
+  <div class="m-dialog__panel st">
+    <button class="x" data-motion-close aria-label="Close settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="appearance" aria-selected="true">Appearance</button>
+      <button class="tab" role="tab" data-tab="experience" aria-selected="false">Experience</button>
+      <button class="tab" role="tab" data-tab="personal" aria-selected="false">Personal</button>
+      <button class="tab" role="tab" data-tab="watchlist" aria-selected="false">Watchlist<span class="cnt" id="c-list"></span></button>
+      <button class="tab" role="tab" data-tab="history" aria-selected="false">History<span class="cnt" id="c-hist"></span></button>
+      <button class="tab" role="tab" data-tab="progress" aria-selected="false">Progress</button>
+    </div>
+    <div class="panes">
+      <section data-pane="appearance">
+        <div class="settings-grid">
+          <div class="setting-block">
+            <h4>Theme</h4>
+            <div class="row"><button class="btn" data-theme-set="dark">Dark</button><button class="btn" data-theme-set="light">Light</button><button class="btn" data-theme-set="system">System</button></div>
+            <p class="setting-desc">Follow your device, or keep Reel in a fixed mode.</p>
+          </div>
+          <div class="setting-block">
+            <h4>Accent color</h4><div class="row" id="sws"></div>
+            <div class="row" style="margin-top:12px"><input class="hex" id="hex" maxlength="7" aria-label="Accent color hex value" spellcheck="false"><button class="btn" id="rst">Reset</button></div>
+            <p class="setting-desc">Choose a preset or enter any six-digit hex color.</p>
+          </div>
+          <div class="setting-block">
+            <h4>Typography</h4>
+            <div class="row"><button class="btn" data-font-set="geist">Geist</button><button class="btn" data-font-set="inter">Inter</button><button class="btn" data-font-set="system">System</button></div>
+            <p class="setting-desc">Change the typeface used throughout the interface.</p>
+          </div>
+          <div class="setting-block">
+            <h4>Interface density</h4>
+            <div class="row"><button class="btn" data-density-set="comfortable">Comfortable</button><button class="btn" data-density-set="compact">Compact</button></div>
+            <p class="setting-desc">Adjust spacing in lists and settings.</p>
+          </div>
+        </div>
+        <div class="setting-actions"><button class="btn" id="reset-prefs">Reset preferences</button></div>
+      </section>
+      <section data-pane="experience" hidden>
+        <div class="settings-grid">
+          <div class="setting-block">
+            <h4>Poster wall</h4>
+            <div class="setting-control"><label for="wall-rows">Rows</label><output id="wall-rows-v">3</output></div>
+            <input type="range" id="wall-rows" min="2" max="5" step="1" value="3">
+            <div class="setting-control"><label for="poster-size">Poster scale</label><output id="poster-size-v">100%</output></div>
+            <input type="range" id="poster-size" min="75" max="125" step="5" value="100">
+            <div class="setting-control"><label for="sensitivity">Drag sensitivity</label><output id="sensitivity-v">100%</output></div>
+            <input type="range" id="sensitivity" min="50" max="200" step="5" value="100">
+          </div>
+          <div class="setting-block">
+            <h4>Movement</h4>
+            <div class="row"><button class="btn" id="drift" aria-pressed="true">Auto-drift on</button></div>
+            <div class="setting-control" style="margin-top:14px"><label for="drift-speed">Drift speed</label><output id="drift-speed-v">100%</output></div>
+            <input type="range" id="drift-speed" min="25" max="200" step="5" value="100">
+            <p class="setting-desc">Controls how quickly the wall moves when idle.</p>
+          </div>
+          <div class="setting-block">
+            <h4>On-screen elements</h4>
+            <div class="row"><button class="btn" id="toggle-mini" aria-pressed="true">Mini-map on</button><button class="btn" id="toggle-chips" aria-pressed="true">Poster labels on</button><button class="btn" id="toggle-hint" aria-pressed="true">Navigation hint on</button></div>
+          </div>
+          <div class="setting-block">
+            <h4>Default view</h4>
+            <div class="row"><button class="btn" data-default-view="wall">3D wall</button><button class="btn" data-default-view="list">List</button></div>
+            <p class="setting-desc">Choose which view opens when you visit Reel.</p>
+          </div>
+          <div class="setting-block">
+            <h4>Motion</h4>
+            <div class="row"><button class="btn" data-motion-set="system">System</button><button class="btn" data-motion-set="full">Full</button><button class="btn" data-motion-set="reduced">Reduced</button></div>
+            <p class="setting-desc">System follows your operating system's reduced-motion preference.</p>
+          </div>
+        </div>
+      </section>
+      <section data-pane="personal" hidden>
+        <div class="setting-block">
+          <h4>Your profile</h4>
+          <div class="profile-fields">
+            <label>Display name<input id="profile-name" type="text" maxlength="24" autocomplete="nickname" placeholder="Your name"></label>
+            <label>Viewing note<input id="profile-note" type="text" maxlength="42" placeholder="A small line about your taste"></label>
+          </div>
+          <p class="setting-desc">This stays on this device and appears in the corner of your Reel page.</p>
+          <div class="setting-actions"><button class="btn" id="switch-profile-settings">Switch profile</button><button class="btn" id="manage-profiles-settings">Manage profiles</button></div>
+        </div>
+        <div class="setting-block">
+          <h4>Favorite genres</h4>
+          <p class="setting-desc" style="margin:0 0 12px">Your picks influence the For you sort. Choose as many as you like.</p>
+          <div class="favorite-grid" id="fav-genres"><span class="empty">Loading genres…</span></div>
+          <div class="setting-actions"><button class="lnk" id="clear-favs">Clear favorites</button></div>
+        </div>
+      </section>
+      <section data-pane="watchlist" hidden><div id="p-list"></div></section>
+      <section data-pane="history" hidden><div class="phead"><button class="lnk" id="clr-h">Clear history</button></div><div id="p-hist"></div></section>
+      <section data-pane="progress" hidden><div class="stats" id="p-stats"></div><div id="p-prog"></div>
+        <div class="row foot"><button class="btn" id="exp">Export backup</button><button class="btn" id="imp-btn">Import backup</button><input id="imp" type="file" accept="application/json,.json" hidden><button class="btn" id="wipe">Clear library</button></div></section>
+    </div>
+  </div>
+</div>
+<div id="dlg" class="m-dialog" role="dialog" aria-modal="true" aria-labelledby="d-title" hidden>
+  <div class="m-dialog__backdrop" data-motion-close></div>
+  <div class="m-dialog__panel">
+    <button class="x" data-motion-close aria-label="Close details"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="hero" id="d-hero"></div>
+    <div class="d-body"><img id="d-img" alt=""><div><div class="d-head"><h2 id="d-title"></h2><button class="btn play" id="play"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.8l-12-7.5A1 1 0 0 0 7 4.5Z"/></svg><span id="play-label">Play movie</span></button></div><div class="d-meta" id="d-meta"></div><div class="d-tag" id="d-tag"></div><p id="d-over"></p><div class="tv-controls" id="tv-controls" hidden><label>Season<select id="tv-season"></select></label><label>Episode<select id="tv-episode"></select></label></div><dl id="d-more"></dl><button class="btn" id="wl" aria-pressed="false" style="margin-top:16px">Add to watchlist</button></div></div>
+    <div class="cast-wrap" id="d-castw" hidden><h4>Cast</h4><div class="cast" id="d-cast"></div></div>
+  </div>
+</div>
+<script src="/assets/js/motion.js"></script>
+<div id="player" class="m-dialog" role="dialog" aria-modal="true" aria-label="Movie player" hidden>
+  <div class="m-dialog__backdrop"></div>
+  <div class="m-dialog__panel pl">
+    <iframe id="pf" title="Movie player" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    <button class="pclose" data-motion-close aria-label="Close player"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+</div>
+<script type="module" src="/assets/js/reel.js"></script>
+</body>
+</html>
